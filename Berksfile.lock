@@ -1,0 +1,14 @@
+DEPENDENCIES
+  sssd
+    path: .
+    metadata: true
+  test-helper
+    path: test/fixtures/cookbooks/test-helper
+
+GRAPH
+  apt (2.6.0)
+  resolver (1.2.0)
+  sssd (0.1.0)
+    apt (>= 0.0.0)
+    resolver (~> 1.2.0)
+  test-helper (0.0.1)

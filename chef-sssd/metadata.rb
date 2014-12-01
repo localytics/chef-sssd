@@ -1,0 +1,10 @@
+name             'sssd'
+maintainer       'Char Software, Inc.'
+maintainer_email 'dev@localytics.com'
+license          'Apache 2.0'
+description      'Installs/Configures sssd for use with an AD backend such as Amazon DS'
+long_description 'Installs/Configures sssd for use with an AD backend such as Amazon DS'
+version          '0.1.0'
+
+depends 'apt'
+depends 'resolver', '~> 1.2.0'

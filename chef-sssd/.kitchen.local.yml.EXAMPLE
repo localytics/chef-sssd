@@ -1,0 +1,15 @@
+suites:
+  - name: default
+    run_list:
+      - recipe[sssd::default]
+      - recipe[test-helper::default]
+    attributes:
+      resolver:
+        nameservers:
+          - 198.51.100.10
+          - 203.0.113.20
+        search: 'example.com'
+      sssd:
+        realm:
+          user: 'example'
+          password: 'example'

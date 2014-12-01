@@ -1,6 +1,6 @@
 # sssd-cookbook
 
-Launch, configure, and manage the SSSD service for communication with Amazon Directory Service (Simple DS)
+Launch, configure, and manage the SSSD service for communication with an AD backend such as Amazon Directory Service (Simple DS)
 
 ## Supported Platforms
 
@@ -23,8 +23,20 @@ Launch, configure, and manage the SSSD service for communication with Amazon Dir
   </tr>
   <tr>
     <td><tt>['resolver']['search']</tt></td>
-    <td>Array</td>
+    <td>String</td>
     <td>active directory search domain (for use with resolver cookbook)</td>
+    <td><tt>nil</tt></td>
+  </tr>
+  <tr>
+    <td><tt>['sssd']['realm']['user']</tt></td>
+    <td>String</td>
+    <td>username to use to join the domain via realm (should probably be set with a databag in a wrapper cookbook)</td>
+    <td><tt>nil</tt></td>
+  </tr>
+  <tr>
+    <td><tt>['sssd']['realm']['password']</tt></td>
+    <td>String</td>
+    <td>password to use to join the domain via realm (should probably be set with a databag in a wrapper cookbook)</td>
     <td><tt>nil</tt></td>
   </tr>
 </table>

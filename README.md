@@ -57,4 +57,5 @@ Include `sssd` in your node's `run_list`:
 
 ## License and Authors
 
+License:: Apache 2.0 (see LICENSE)
 Author:: Char Software, Inc. (dev@localytics.com)

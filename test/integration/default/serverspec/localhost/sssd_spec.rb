@@ -25,7 +25,7 @@ end
 
 # We sleep for sudo caches to expire, no way to yet force it.
 describe command("sleep 300") do
-  its(:exit_Status) { should eq 0 }
+  its(:exit_status) { should eq 0 }
 end
 
 describe command("/usr/bin/sudo -U #{$node['sssd']['realm']['user']} -l") do

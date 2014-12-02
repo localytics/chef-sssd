@@ -23,11 +23,6 @@ describe command("/usr/bin/sss_ssh_authorizedkeys #{$node['sssd']['realm']['user
   its(:stdout) { should match /^ssh-rsa / }
 end
 
-# We sleep for sudo caches to expire, no way to yet force it.
-describe command("sleep 300") do
-  its(:exit_status) { should eq 0 }
-end
-
 describe command("/usr/bin/sudo -U #{$node['sssd']['realm']['user']} -l") do
   its(:stdout) { should_not match /is not allowed to run sudo on/ }
 end

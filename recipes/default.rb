@@ -35,16 +35,6 @@ bash 'join_domain' do
   notifies :restart, 'service[sssd]'
 end
 
-# The default sudoers: order doesn't work well in Ubuntu, so we need to reverse it.
-# It was between this, using sed, or using augeas. Seems the normal Chef way is to manage the entire file.
-cookbook_file '/etc/nsswitch.conf' do
-  source 'nsswitch.conf'
-  mode '644'
-  user 'root'
-  group 'root'
-  notifies :restart, 'service[sssd]'
-end
-
 template '/etc/sssd/sssd.conf' do
   source 'sssd.conf.erb'
   owner 'root'

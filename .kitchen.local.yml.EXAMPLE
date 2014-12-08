@@ -13,3 +13,6 @@ suites:
         realm:
           user: 'example'
           password: 'example'
+        ldap:
+          user: 'example2'
+          password: 'example2'

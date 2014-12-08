@@ -44,7 +44,9 @@ template '/etc/sssd/sssd.conf' do
   variables({
     :domain => node['resolver']['search'],
     :realm => node['resolver']['search'].upcase,
-    :ldap_dn => node['resolver']['search'].split('.').map { |s| "dc=#{s}" }.join(',')
+    :ldap_suffix => node['resolver']['search'].split('.').map { |s| "dc=#{s}" }.join(','),
+    :ldap_user => node['sssd']['ldap']['user'],
+    :ldap_password => node['sssd']['ldap']['password']
   })
 end
 

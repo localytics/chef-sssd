@@ -208,6 +208,7 @@ GEM
       hitimes
     treetop (1.5.3)
       polyglot (~> 0.3)
+    vagrant-wrapper (1.2.1.1)
     varia_model (0.4.0)
       buff-extensions (~> 1.0)
       hashie (>= 2.0.2, < 3.0.0)
@@ -228,3 +229,4 @@ DEPENDENCIES
   knife-solo_data_bag
   serverspec
   test-kitchen
+  vagrant-wrapper

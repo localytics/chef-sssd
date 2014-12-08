@@ -30,13 +30,25 @@ Launch, configure, and manage the SSSD service for communication with an AD back
   <tr>
     <td><tt>['sssd']['realm']['user']</tt></td>
     <td>String</td>
-    <td>username to use to join the domain via realm (should probably be set with a databag in a wrapper cookbook)</td>
+    <td>username to use to join the domain via realm</td>
     <td><tt>nil</tt></td>
   </tr>
   <tr>
     <td><tt>['sssd']['realm']['password']</tt></td>
     <td>String</td>
-    <td>password to use to join the domain via realm (should probably be set with a databag in a wrapper cookbook)</td>
+    <td>password to use to join the domain via realm</td>
+    <td><tt>nil</tt></td>
+  </tr>
+  <tr>
+    <td><tt>['sssd']['ldap']['user']</tt></td>
+    <td>String</td>
+    <td>optional username to use to access data via the ldap sssd provider</td>
+    <td><tt>nil</tt></td>
+  </tr>
+  <tr>
+    <td><tt>['sssd']['ldap']['password']</tt></td>
+    <td>String</td>
+    <td>optional password to use to access data via the ldap sssd provider</td>
     <td><tt>nil</tt></td>
   </tr>
 </table>

@@ -27,4 +27,5 @@ group :development do
   gem 'serverspec'
   gem 'foodcritic'
   gem 'chefspec'
+  gem 'vagrant-wrapper'
 end

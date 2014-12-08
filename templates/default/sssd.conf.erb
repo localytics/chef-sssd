@@ -30,10 +30,14 @@ fallback_homedir = /home/%u
 
 ldap_tls_reqcert = never
 ldap_uri = ldap://<%= @domain %>
-ldap_search_base = <%= @ldap_dn %>
-ldap_user_search_base = cn=Users,<%= @ldap_dn %>
+ldap_search_base = <%= @ldap_suffix %>
+ldap_user_search_base = cn=Users,<%= @ldap_suffix %>
 ldap_user_object_class = user
 ldap_user_name = sAMAccountName
 ldap_user_ssh_public_key = sshPublicKey
-ldap_group_search_base = cn=Users,<%= @ldap_dn %>
-ldap_sudo_search_base = cn=Sudoers,<%= @ldap_dn %>
+ldap_group_search_base = cn=Users,<%= @ldap_suffix %>
+ldap_sudo_search_base = cn=Sudoers,<%= @ldap_suffix %>
+<% if @ldap_user && @ldap_password %>
+ldap_default_bind_dn = cn=<%= @ldap_user %>,cn=Users,<%= @ldap_suffix %>
+ldap_default_authtok_type = <%= @ldap_password %>
+<% end %>

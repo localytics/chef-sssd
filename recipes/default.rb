@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2014 Char Software, Inc.
 #
-# All rights reserved - Do Not Redistribute
+# All rights reserved - see LICENSE
 #
 
 include_recipe 'apt::default'

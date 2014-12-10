@@ -10,9 +10,10 @@ suites:
           - 203.0.113.20
         search: 'example.com'
       sssd:
+        test_user: 'Guest'
         realm:
-          user: 'example'
-          password: 'example'
+          databag: 'sssd_credentials'
+          databag_item: 'realm'
         ldap:
-          user: 'example2'
-          password: 'example2'
+          databag: 'sssd_credentials'
+          databag_item: 'ldap'

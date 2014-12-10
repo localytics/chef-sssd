@@ -4,16 +4,26 @@ default['resolver']['nameservers'] = nil
 # The AD domain (ie: example.com)
 default['resolver']['search'] = nil
 
-# The realm join username (an account that can be used to join the host to the domain)
-default['sssd']['realm']['user'] = nil
+# Databag: realm username/password, for joining the domain
+# {
+#   "id": "realm",
+#   "user": "example",
+#   "password": "password"
+# }
+default['sssd']['realm']['databag'] = nil
+default['sssd']['realm']['databag_item'] = nil
 
-# The realm join password (the password for the account above)
-# This should likely come from a databag (or other means) via a wrapper cookbook!
-default['sssd']['realm']['password'] = nil
+# Databag: ldap username/password, for accessing sudo information
+# {
+#   "id": "ldap",
+#   "user": "example",
+#   "password": "password"
+# }
+default['sssd']['ldap']['databag'] = nil
+default['sssd']['ldap']['databag_item'] = nil
 
-# The ldap sssd username (optional username to use to access data via the ldap sssd provider)
-default['sssd']['ldap']['user'] = nil
-
-# The ldap sssd password (the password for the account above)
-# This should likely come from a databag (or other means) via a wrapper cookbook!
-default['sssd']['ldap']['password'] = nil
+# A test user in your AD directory, used in serverspec tests only.
+# The user should have:
+#   * some sudo privileges to pass the sudo test
+#   * an ssh key to verify LDAP ssh keys are functioning
+default['sssd']['test_user'] = 'Guest'

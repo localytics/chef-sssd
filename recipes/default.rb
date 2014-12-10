@@ -7,6 +7,17 @@
 # All rights reserved - see LICENSE
 #
 
+if [['realm', 'databag'],['realm', 'databag_item'],['ldap', 'databag'],['ldap', 'databag_item']].any? {|key, subkey| node['sssd'][key][subkey].nil? }
+  Chef::Application.fatal!("You must setup the appropriate databag attributes!")
+end
+
+# These are created with:
+#   openssl rand -base64 512 | tr -d '\r\n' > test/support/encrypted_data_bag_secret
+#   knife solo data bag create sssd_credentials realm -c .chef/solo.rb
+#   knife solo data bag create sssd_credentails ldap -c .chef/solo.rb
+realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'])
+ldap_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['ldap']['databag'],node['sssd']['ldap']['databag_item'])
+
 include_recipe 'apt::default'
 include_recipe 'resolver::default'
 
@@ -25,9 +36,9 @@ package 'samba-common-bin'
 bash 'join_domain' do
   user 'root'
   code <<-EOF
-  /usr/bin/expect -c 'spawn realm join -U #{node['sssd']['realm']['user']} #{node['resolver']['search']}
-  expect "Password for #{node['sssd']['realm']['user']}: "
-  send "#{node['sssd']['realm']['password']}\r"
+  /usr/bin/expect -c 'spawn realm join -U #{realm_databag_contents['user']} #{node['resolver']['search']}
+  expect "Password for #{realm_databag_contents['user']}: "
+  send "#{realm_databag_contents['password']}\r"
   expect eof'
   sleep 10
   EOF
@@ -45,8 +56,8 @@ template '/etc/sssd/sssd.conf' do
     :domain => node['resolver']['search'],
     :realm => node['resolver']['search'].upcase,
     :ldap_suffix => node['resolver']['search'].split('.').map { |s| "dc=#{s}" }.join(','),
-    :ldap_user => node['sssd']['ldap']['user'],
-    :ldap_password => node['sssd']['ldap']['password']
+    :ldap_user => ldap_databag_contents['user'],
+    :ldap_password => ldap_databag_contents['password']
   })
 end
 

@@ -1,0 +1,43 @@
+[sssd]
+config_file_version = 2
+services = nss, pam, ssh, sudo
+domains = <%= @domain %>
+
+[nss]
+filter_users = root,named,avahi,haldaemon,dbus,radiusd,news,nscd
+
+[pam]
+
+[ssh]
+
+[sudo]
+
+[domain/<%= @domain %>]
+id_provider = ad
+access_provider = ad
+auth_provider = ad
+chpass_provider = ad
+sudo_provider = ldap
+
+ad_domain = <%= @domain %>
+krb5_realm = <%= @realm %>
+realmd_tags = manages-system joined-with-samba 
+cache_credentials = True
+krb5_store_password_if_offline = True
+default_shell = /bin/bash
+ldap_id_mapping = True
+fallback_homedir = /home/%u
+
+ldap_tls_reqcert = never
+ldap_uri = ldap://<%= @domain %>
+ldap_search_base = <%= @ldap_suffix %>
+ldap_user_search_base = cn=Users,<%= @ldap_suffix %>
+ldap_user_object_class = user
+ldap_user_name = sAMAccountName
+ldap_user_ssh_public_key = sshPublicKey
+ldap_group_search_base = cn=Users,<%= @ldap_suffix %>
+ldap_sudo_search_base = cn=Sudoers,<%= @ldap_suffix %>
+<% if @ldap_user && @ldap_password %>
+ldap_default_bind_dn = <%= @ldap_user %>@<%= @domain %>
+ldap_default_authtok = <%= @ldap_password %>
+<% end %>

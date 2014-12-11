@@ -1,0 +1,19 @@
+suites:
+  - name: default
+    run_list:
+      - recipe[sssd::default]
+      - recipe[test-helper::default]
+    attributes:
+      resolver:
+        nameservers:
+          - 198.51.100.10
+          - 203.0.113.20
+        search: 'example.com'
+      sssd:
+        test_user: 'Guest'
+        realm:
+          databag: 'sssd_credentials'
+          databag_item: 'realm'
+        ldap:
+          databag: 'sssd_credentials'
+          databag_item: 'ldap'

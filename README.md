@@ -69,7 +69,7 @@ Include `sssd` in your node's `run_list`:
 
 ## License and Authors
 
-Author:: Char Software, Inc. (dev@localytics.com)
+Author:: Char Software, Inc. (oss@localytics.com)
 
 ```text
 Copyright:: 2014, Char Software, Inc.

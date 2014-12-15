@@ -433,7 +433,7 @@ Next, create an encrypted data bag key used for locally created data bags:
 Then, configure an encrypted data bag with a valid administrative username and password, used for joining the domain with 'realm':
 
   ```bash
-  knife solo data bag create sssd_credentails realm -c .chef/solo.rb
+  knife solo data bag create sssd_credentials realm -c .chef/solo.rb
   ```
 
 The format of the data bag is:
@@ -449,7 +449,7 @@ The format of the data bag is:
 Next, create a data bag with a username and password that has access to read ou=Sudoers inside Simple AD:
 
   ```bash
-  knife solo data bag create sssd_credentails ldap -c .chef/solo.rb
+  knife solo data bag create sssd_credentials ldap -c .chef/solo.rb
   ```
 
 The format of the data bag is:

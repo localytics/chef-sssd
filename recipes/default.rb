@@ -24,7 +24,7 @@ end
 # These are created with:
 #   openssl rand -base64 512 | tr -d '\r\n' > test/support/encrypted_data_bag_secret
 #   knife solo data bag create sssd_credentials realm -c .chef/solo.rb
-#   knife solo data bag create sssd_credentails ldap -c .chef/solo.rb
+#   knife solo data bag create sssd_credentials ldap -c .chef/solo.rb
 realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'])
 ldap_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['ldap']['databag'],node['sssd']['ldap']['databag_item'])
 

@@ -464,8 +464,8 @@ CHEF COOKBOOK
 Testing the configuration of Simple AD, SSSD, and OpenSSH is simple with our SSSD and OpenSSH chef cookbooks, 
 accessible at:
 
-  http://www.github.com/localytics/chef-sssd.git
-  http://www.github.com/localytics/chef-ly-openssh.git
+  - http://www.github.com/localytics/chef-sssd.git
+  - http://www.github.com/localytics/chef-ly-openssh.git
 
 In order to test that your SSSD & Simple AD setup is working properly, you'll need to run the following on a host 
 that has access to a configured Simple AD instance. At Localytics, we use VPN to gain access from our local 

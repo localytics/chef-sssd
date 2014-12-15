@@ -1,4 +1,5 @@
 Introduction
+============
 
 We were recently faced with the challenge of implementing a centralized directory service for our vast Amazon 
 web services infrastructure. Having to sync multiple backends for our numerous applications that required 
@@ -11,6 +12,7 @@ did, and how you can duplicate our setup in your own environment. We implemented
 however, similar steps could likely be applied to Redhat and/or CentOS 6/7.
 
 Amazon Simple AD
+----------------
 
 The first step in implenting a solution was to decide on a backend LDAP-compatible directory. Initially, we 
 considered using OpenLDAP server, but that plan was met with many hesitations. Particularly, we were worried 
@@ -24,6 +26,7 @@ requirements for a directory service and was an obvious best choice, albeit with
 get into in a bit.
 
 SSSD
+----
 
 From past experience, we were well-aware of the directory integration features of pam and nss with pam_ldap and 
 nss_ldap, respectively, along with nscld. However, these modules have historically been troublesome and 
@@ -36,6 +39,7 @@ for the searching of an LDAP backend to retrieve SSH keys. For our setup, SSSD w
 because Ubuntu 14.04 LTS ships with a recent version that included the enhanced features we need!
 
 OPENSSH
+-------
 
 While SSSD provides a mechanism for fetching SSH keys from LDAP, OpenSSH still needs to be able to read and 
 trust those keys as if they were in the usual location (.ssh/authorized_keys). A few years ago, a patch to 
@@ -45,6 +49,7 @@ upstream, and as of Ubuntu 14.04 is available as part of the OpenSSH package. No
 management or running complicated scripts just to replace SSH keys!
 
 TYING IT ALL TOGETHER
+=====================
 
 The SSSD service allows us to centralize password authentication, public/private key authentication, host 
 access, and sudo roles and access. Unfortunately, the Simple AD service (as of this time) doesn't support SSL 
@@ -54,6 +59,7 @@ As luck would have it, the sss_ssh_authorizedkeys script previously mentioned ig
 and will simply use any ldap_* configuration if present, without the requirement of SSL.
 
 AMAZON SIMPLE DS SETUP
+----------------------
 
 To begin, spin up an Amazon Simple DS instance. You'll need to load some custom schema files. First, create 
 sudo.ldif with the following contents, being sure to replace the Base DN references with the Base DN of your 
@@ -339,6 +345,7 @@ Your Amazon Simple DS instance should now be properly configured. Next, we'll co
 instance and tie it into the directory service.
 
 SSSD & OPENSSH SETUP
+--------------------
 
 First, spin up a vanilla Ubuntu 14.04 LTS instance, switch to a root shell, and edit /etc/resolv.conf to contain 
 something simliar to the following, being sure to replace the search domain with your AD domain and the 
@@ -429,6 +436,7 @@ Now restart SSSD and OpenSSH, and you should be all set:
   ```
 
 TESTING YOUR SETUP
+------------------
 
 To test your setup, verify that SSSD can talk to Simple AD and fetch information about your test user (user and 
 group information should be returned):
@@ -451,6 +459,7 @@ returned):
   ```
 
 CHEF COOKBOOK
+=============
 
 Testing the configuration of Simple AD, SSSD, and OpenSSH is simple with our SSSD and OpenSSH chef cookbooks, 
 accessible at:

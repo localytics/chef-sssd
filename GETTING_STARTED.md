@@ -530,7 +530,7 @@ The format of the data bag is:
 Once you're all set, simply:
 
   ```bash
-  kitchen test
+  bundle exec kitchen test
   ```
 
 ... and watch! If all tests pass, you've successfully configured your Simple AD server.

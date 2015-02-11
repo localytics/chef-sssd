@@ -6,7 +6,7 @@ We were recently faced with the challenge of implementing a centralized director
 Amazon Simple AD
 ----------------
 
-The first step in implementing a solution was to decide on a backend LDAP-compatible directory. Initially, we considered using OpenLDAP server, but that plan was met with many hesitations. Particularly, we were worried about the amount of work required to expand on the existing OpenLDAP Chef cookbook to meet our needs. Also, we generally prefer to utilize "as a service" tools as often as possible, and this was no exception: maintaining production OpenLDAP infrastructure, including replication, high-availability, and backups, was a responsibility our development team was hopeful to avoid. Eventually, we decided to move forward With Amazon's [Directory Service](http://aws.amazon.com/directoryservice/). Although geared as a replacement for Microsoft's Active Directory and therefore targeted for Windows instances, a Simple DS instance is still LDAP (actually, Samba) under the hood. Fortunately, it met all of our requirements for a directory service and was an obvious best choice, albeit with a few limitations which we'll get into in a bit.
+The first step in implementing a solution was to decide on a backend LDAP-compatible directory. Initially, we considered using OpenLDAP server, but that plan was met with many hesitations. Particularly, we were worried about the amount of work required to expand on the existing OpenLDAP Chef cookbook to meet our needs. Also, we generally prefer to utilize "as a service" tools as often as possible, and this was no exception: maintaining production OpenLDAP infrastructure, including replication, high-availability, and backups, was a responsibility our development team was hopeful to avoid. Eventually, we decided to move forward With Amazon's [Directory Service](http://aws.amazon.com/directoryservice/). Although geared as a replacement for Microsoft's Active Directory and therefore targeted for Windows instances, a Simple AD instance is still LDAP (actually, Samba) under the hood. Fortunately, it met all of our requirements for a directory service and was an obvious best choice, albeit with a few limitations which we'll get into in a bit.
 
 SSSD
 ----
@@ -23,10 +23,10 @@ TYING IT ALL TOGETHER
 
 The SSSD service allows us to centralize password authentication, public/private key authentication, host access, and sudo roles and access. Unfortunately, the Simple AD service (as of this time) doesn't support SSL connections, which is a requirement for utilizing the LDAP identity provider inside SSSD. We were fortunate enough to be able to work around this problem by utilizing a combination of the AD and LDAP provider backends. As luck would have it, the sss_ssh_authorizedkeys script previously mentioned ignores any backend configuration and will simply use any ldap_* configuration if present, without the requirement of SSL.
 
-AMAZON SIMPLE DS SETUP
+AMAZON SIMPLE AD SETUP
 ----------------------
 
-To begin, spin up an Amazon Simple DS instance. You'll need to load some custom schema files. First, create sudo.ldif with the following contents, being sure to replace the Base DN references with the Base DN of your directory server (in our examples, we're using example.com):
+To begin, spin up an Amazon Simple AD instance. You'll need to load some custom schema files. First, create sudo.ldif with the following contents, being sure to replace the Base DN references with the Base DN of your directory server (in our examples, we're using example.com):
 
   ```
   dn: CN=sudoUser,CN=Schema,CN=Configuration,DC=example,DC=com
@@ -293,7 +293,7 @@ Apply the LDIF to your directory server:
   ldbadd -H "ldap://example.com" add-key.ldif --user "<Admin Account Username>" --password "<Admin Account Password>"
   ```
 
-Your Amazon Simple DS instance should now be properly configured. Next, we'll configure SSSD & OpenSSH on a test instance and tie it into the directory service.
+Your Amazon Simple AD instance should now be properly configured. Next, we'll configure SSSD & OpenSSH on a test instance and tie it into the directory service.
 
 SSSD & OPENSSH SETUP
 --------------------

@@ -1,4 +1,5 @@
-# The AD host IP address (or addresses) (IE: [ '192.168.1.100', '192.168.1.101' ])
+# The /etc/resolv.conf nameserver IP address (or addresses) (IE: [ '192.168.1.100', '192.168.1.101' ])
+# These must be able to resolve your AD domain, and *can* be set to Simple AD server IPs.
 default['resolver']['nameservers'] = nil
 
 # The AD domain (ie: example.com)

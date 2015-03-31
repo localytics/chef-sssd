@@ -1,7 +1,7 @@
 Introduction
 ============
 
-We were recently faced with the challenge of implementing a centralized directory service for our AWS infrastructure. Having to sync multiple backends for our numerous applications that required authentication was getting cumbersome. Additionally, it was also necessary for us to support managing SSH keys and altering sudo permissions on running instances, as re-deploying infrastructure or performing a configuration management run (in our case, Chef) every time a key changed or a new hire joined had became too tedious. We researched numerous options, but ultimately decided on a combination of Amazon services and new features in Ubuntu 14.04 to achieve our goals. This document will guide you through how and why we made the decisions we did, and how you can duplicate our setup in your own environment. We implemented our setup using Ubuntu 14.04; however, similar steps could likely be applied to Redhat and/or CentOS 6/7.
+We were recently faced with the challenge of implementing a centralized directory service for our AWS infrastructure. Having to sync multiple backends for our numerous applications that required authentication was getting cumbersome. Additionally, it was also necessary for us to support managing SSH keys and altering sudo permissions on running instances, as re-deploying infrastructure or performing a configuration management run (in our case, Chef) every time a key changed or a new hire joined had became too tedious. We researched numerous options, but ultimately decided on a combination of Amazon services and new features in Ubuntu 14.04 and CentOS 6.x to achieve our goals. This document will guide you through how and why we made the decisions we did, and how you can duplicate our setup in your own environment. We implemented our setup using Ubuntu 14.04 and CentOS 6.6; however, this cookbook likely supports other Linux distributions.
 
 Amazon Simple AD
 ----------------
@@ -11,12 +11,12 @@ The first step in implementing a solution was to decide on a backend LDAP-compat
 SSSD
 ----
 
-From past experience, we were well-aware of the directory integration features of pam and nss with pam_ldap and nss_ldap, respectively, along with nscld. However, these modules have historically been troublesome and often-times not well documented. Furthermore, caching support was non-existent and an outage of LDAP connectivity would leave servers inaccessible and/or unreliable. Enter SSSD, the centralized access point for all authentication and authorization requests for pam, nss, sudo, and more. Additionally, it supports numerous backends, such as LDAP, Active Directory, and FreeIPA, with enhanced caching support to reduce strain on directory servers and provide relief in a service outage. Also, a built-in sss_ssh_authorizedkeys utility allows for the searching of an LDAP backend to retrieve SSH keys. For our setup, SSSD was a no-brainer, especially because Ubuntu 14.04 LTS ships with a recent version that included the enhanced features we need!
+From past experience, we were well-aware of the directory integration features of pam and nss with pam_ldap and nss_ldap, respectively, along with nscld. However, these modules have historically been troublesome and often-times not well documented. Furthermore, caching support was non-existent and an outage of LDAP connectivity would leave servers inaccessible and/or unreliable. Enter SSSD, the centralized access point for all authentication and authorization requests for pam, nss, sudo, and more. Additionally, it supports numerous backends, such as LDAP, Active Directory, and FreeIPA, with enhanced caching support to reduce strain on directory servers and provide relief in a service outage. Also, a built-in sss_ssh_authorizedkeys utility allows for the searching of an LDAP backend to retrieve SSH keys. For our setup, SSSD was a no-brainer, especially because Ubuntu 14.04 LTS and CentOS 6.x ship with a recent version that included the enhanced features we need!
 
 OPENSSH
 -------
 
-While SSSD provides a mechanism for fetching SSH keys from LDAP, OpenSSH still needs to be able to read and trust those keys as if they were in the usual location (.ssh/authorized_keys). A few years ago, a patch to OpenSSH was circulating that added an "AuthorizedKeysCommand" configuration parameter that specified a command string to execute that would return keys for a given user. Fortunately, a similar patch finally made its way upstream, and as of Ubuntu 14.04 is available as part of the OpenSSH package. No more re-deploying configuration management or running complicated scripts just to replace SSH keys!
+While SSSD provides a mechanism for fetching SSH keys from LDAP, OpenSSH still needs to be able to read and trust those keys as if they were in the usual location (.ssh/authorized_keys). A few years ago, a patch to OpenSSH was circulating that added an "AuthorizedKeysCommand" configuration parameter that specified a command string to execute that would return keys for a given user. CentOS 6.x received this patch. Fortunately, a similar patch finally made its way upstream, and as of Ubuntu 14.04 is available as part of the OpenSSH package. No more re-deploying configuration management or running complicated scripts just to replace SSH keys!
 
 TYING IT ALL TOGETHER
 =====================
@@ -243,32 +243,9 @@ Then, create ssh.ldif with the following contents, being sure to replace the Bas
 Next, create sudoers.ldif with SIMILAR contents to the following, being sure to replace the Base DN references with the Base DN of your directory server (ie: dc=example,dc=com). This example LDIF creates a root sudo role and gives *all users* access to that role:
 
   ```
-  dn: CN=Sudoers,CN=Users,DC=example,DC=com
-  objectClass: top
-  objectClass: container
-  cn: Sudoers
-  name: Sudoers
-  description: Default container for Sudoers configuration
-  distinguishedName: CN=Sudoers,DC=example,DC=com
+    ```
 
-  # sudo defaults
-  dn: cn=defaults,CN=Sudoers,CN=Users,DC=example,DC=com
-  objectClass: top
-  objectClass: sudoRole
-  cn: defaults
-  description: Default sudoOptions go here
-  sudoOption: env_keep+=SSH_AUTH_SOCK
-
-  dn: CN=root,CN=Sudoers,CN=Users,DC=example,DC=com
-  objectClass: top
-  objectClass: sudoRole
-  cn: root
-  sudoHost: ALL
-  sudoCommand: ALL
-  sudoUser: ALL
-  ```
-
-To load these LDIFS, execute the following, being sure to replace place-holders with proper values:
+To load these LDIFS, execute the following, being sure to replace place-holders with proper values. If you get an error that --user is an invalid option, you'll want to make sure you have the samba package installed alongside ldb-tools:
 
   ```bash
   ldbadd -H "ldap://example.com" sudo.ldif --user "<Admin Account Username>" --password "<Admin Account Password>"
@@ -276,21 +253,99 @@ To load these LDIFS, execute the following, being sure to replace place-holders 
   ldbadd -H "ldap://example.com" sudoers.ldif --user "<Admin Account Username>" --password "<Admin Account Password>"
   ```
 
-The next few steps should be done using the Active Directory Users & Computers tool from within Windows. Create at least two users: one that will be used to test that the setup is functioning correctly, and the other that will be used by SSSD to access sudoers data inside LDAP. For example, "test.user" and "sssd.ldap" (used in our example below). You must also grant permission to the ou=Sudoers container that was created via the above LDIF. First, choose "View" and select "Advanced Features". Right click on 'Sudoers' on the left, choose Properties, and then select the Security tab. Allow Authenticated Users read access to the container, and then save your changes.
-
-Finally, add an SSH key to the test user you've created above via LDIF, being sure to replace the Base DN references with the Base DN of your directory server (again, as an example: dc=example,dc=com) and populating a valid public SSH key:
+Now, create at least two users: one that will be used to test that the setup is functioning correctly, and the other that will be used by SSSD to access sudoers data inside LDAP. For our example below (users.ldif), we have "tuser" and "suser":
 
   ```
+  dn: CN=Test User,CN=Users,DC=example,DC=com
+  cn: Test User
+  sn: User
+  givenName: Test
+  displayName: Test User
+  name: Test User
+  sAMAccountName: tuser
+  userPrincipalName: tuser@example.com
+  instanceType: 4
+  badPwdCount: 0
+  codePage: 0
+  countryCode: 0
+  badPasswordTime: 0
+  lastLogoff: 0
+  lastLogon: 0
+  accountExpires: 9223372036854775807
+  logonCount: 0
+  pwdLastSet: 130598522940000000
+  lockoutTime: 0
+  userAccountControl: 66048
+  msDS-SupportedEncryptionTypes: 0
+  objectClass: top
+  objectClass: person
+  objectClass: organizationalPerson
+  objectClass: user
+  
+  dn: CN=SSSD User,CN=Users,DC=example,DC=com
+  cn: SSSD User
+  sn: User
+  givenName: SSSD
+  displayName: SSSD User
+  name: SSSD User
+  sAMAccountName: suser
+  userPrincipalName: suser@example.com
+  instanceType: 4
+  badPwdCount: 0
+  codePage: 0
+  countryCode: 0
+  badPasswordTime: 0
+  lastLogoff: 0
+  lastLogon: 0
+  accountExpires: 9223372036854775807
+  logonCount: 0
+  pwdLastSet: 130598522940000000
+  lockoutTime: 0
+  userAccountControl: 66048
+  msDS-SupportedEncryptionTypes: 0
+  objectClass: top
+  objectClass: person
+  objectClass: organizationalPerson
+  objectClass: user
+  ```
+
+And import:
+
+  ```bash
+  ldbadd -H "ldap://example.com" users.ldif --user "<Admin Account Username>" --password "<Admin Account Password>"
+  ```
+
+Utilizing a host that has samba-tool installed, set passwords for the above new accounts, being sure to replace place-holders with proper values:
+
+  ```bash
+  samba-tool user setpassword --newpassword "<password>" -H "ldap://example.com" --user "<Admin Account Username>" --password "<Admin Account Password>" suser
+  samba-tool user setpassword --newpassword "<password>" -H "ldap://example.com" --user "<Admin Account Username>" --password "<Admin Account Password>" tuser
+  ```
+  
+You must also grant authentication users read access to the ou=Sudoers container that was created via the above LDIF. Again, using samba-tool:
+
+  ```bash
+  samba-tool dsacl set -H "ldap://example.com" --user "<Admin Account Username>" --password "<Admin Account Password>" --objectdn="CN=Sudoers,CN=Users,DC=example,DC=com" --sddl="(A;CI;GR;;;AU)"
+  ```
+  
+Now add an SSH key to the *test user* you've created. Be sure to replace the Base DN references with the Base DN of your directory server (again, as an example: dc=example,dc=com) and populating a valid public SSH key:
+
+  ```
+  dn: CN=Test User,CN=Users,DC=example,DC=com
+  changeType: modify
+  add: objectClass
+  objectClass: ldapPublicKey
+
   dn: cn=Test User,CN=Users,DC=example,DC=com
   changeType: modify
   add: sshPublicKey
-  sshPublicKey: ssh-rsa .... test.user@Tests-Macbook-Air.local
+  sshPublicKey: ssh-rsa .... tuser@Tests-Macbook-Air.local
   ```  
 
 Apply the LDIF to your directory server:
 
   ```bash
-  ldbadd -H "ldap://example.com" add-key.ldif --user "<Admin Account Username>" --password "<Admin Account Password>"
+  ldbmodify -H "ldap://example.com" add-key.ldif --user "<Admin Account Username>" --password "<Admin Account Password>"
   ```
 
 Your Amazon Simple AD instance should now be properly configured. Next, we'll configure SSSD & OpenSSH on a test instance and tie it into the directory service.
@@ -361,8 +416,8 @@ Your server should successfully be joined to the domain. Unfortunately, realm do
   ldap_user_name = sAMAccountName
   ldap_user_ssh_public_key = sshPublicKey
   ldap_group_search_base = cn=Users,dc=example,dc=com
-  ldap_sudo_search_base = cn=Sudoers,dc=example,dc=com
-  ldap_default_bind_dn = sssd.ldap@example.com
+  ldap_sudo_search_base = cn=Sudoers,cn=Users,dc=example,dc=com
+  ldap_default_bind_dn = suser@example.com
   ldap_default_authtok = ExamplePassword
   ```
 
@@ -386,19 +441,19 @@ TESTING YOUR SETUP
 To test your setup, verify that SSSD can talk to Simple AD and fetch information about your test user (user and group information should be returned):
 
   ```bash
-  id test.user
+  id tuser
   ```
 
 Next, verify that SSH keys can be accessed (an SSH key should be returned):
 
   ```bash
-  /usr/bin/sss_ssh_authorizedkeys test.user
+  /usr/bin/sss_ssh_authorizedkeys tuser
   ```
 
 Finally, verify that your test user has root sudo privileges (root sudo privilege information should be returned):
 
   ```bash
-  /usr/bin/sudo -U test.user -l
+  /usr/bin/sudo -U tuser -l
   ```
 
 CHEF COOKBOOK
@@ -409,7 +464,7 @@ Testing the configuration of Simple AD, SSSD, and OpenSSH is simple with our SSS
   - http://www.github.com/localytics/chef-sssd.git
   - http://www.github.com/localytics/chef-ly-openssh.git
 
-In order to test that your SSSD & Simple AD setup is working properly, you'll need to run the following on a host that has access to a configured Simple AD instance. At Localytics, we use VPN to gain access from our local machines, but YMMV.
+In order to test that your SSSD & Simple AD setup is working properly, you'll need to run the following on a host that has access to a configured Simple AD instance. At Localytics, we use VPN to gain access from our local machines, but YMMV. While you probably want to setup the following in an organization-specific wrapper cookbook, we've tried to make it as easy as possible to clone the sssd cookbook and simply "get it working".
 
 To get started, make sure you have the chef-dk installed (https://downloads.chef.io/chef-dk/) and a sane ruby setup, then simply:
 
@@ -421,7 +476,7 @@ To get started, make sure you have the chef-dk installed (https://downloads.chef
   cp .kitchen.local.yml.EXAMPLE .kitchen.local.yml
   ```
 
-Then edit your .kitchen.local.yml with the IP addresses of your primary and secondary AD servers, AD domain, and a user that has at least one public key and one sudo role configured. The latter is used by integration tests to verify that all services are functioning correctly. FYI, our example user, 'Guest', likely does NOT have the configuration necessary to pass the tests.
+Then edit your .kitchen.local.yml with the IP addresses of your primary and secondary AD servers, AD domain, and a user that has at least one public key and one sudo role configured). The latter is used by integration tests to verify that all services are functioning correctly. FYI, our example user, 'Guest', likely does NOT have the configuration necessary to pass the tests. You'll want to make this 'tuser' if you used our examples above.
 
 Next, create an encrypted data bag key used for locally created data bags:
 
@@ -441,12 +496,12 @@ The format of the data bag is:
   ```json
   {
     "id": "realm",
-    "user": "example",
+    "user": "administrator",
     "password": "password"
   }
   ```
 
-Next, create a data bag with a username and password that has access to read ou=Sudoers inside Simple AD:
+Next, create a data bag with a username and password that has access to read ou=Sudoers inside Simple AD (if you used our example ACL above, this is any authenticated user):
 
   ```bash
   knife solo data bag create sssd_credentials ldap -c .chef/solo.rb
@@ -457,7 +512,7 @@ The format of the data bag is:
   ```json
   {
     "id": "ldap",
-    "user": "example",
+    "user": "suser",
     "password": "password"
   }
   ```

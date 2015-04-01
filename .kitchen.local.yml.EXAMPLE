@@ -10,6 +10,7 @@ suites:
           - 203.0.113.20
         search: 'example.com'
       sssd:
+        directory_name: 'example.com'
         test_user: 'Guest'
         realm:
           databag: 'sssd_credentials'

@@ -36,7 +36,7 @@ ldap_user_object_class = user
 ldap_user_name = sAMAccountName
 ldap_user_ssh_public_key = sshPublicKey
 ldap_group_search_base = cn=Users,<%= @ldap_suffix %>
-ldap_sudo_search_base = cn=Sudoers,<%= @ldap_suffix %>
+ldap_sudo_search_base = cn=Sudoers,cn=Users,<%= @ldap_suffix %>
 <% if @ldap_user && @ldap_password %>
 ldap_default_bind_dn = <%= @ldap_user %>@<%= @domain %>
 ldap_default_authtok = <%= @ldap_password %>

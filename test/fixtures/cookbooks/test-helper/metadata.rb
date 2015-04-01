@@ -5,6 +5,6 @@ version          '0.0.1'
 
 recipe 'default', 'Dumps chef node data to json file'
 
-%w{ ubuntu }.each do |os|
+%w{ ubuntu centos }.each do |os|
   supports os
 end

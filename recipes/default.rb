@@ -2,7 +2,7 @@
 # Cookbook Name:: sssd
 # Recipe:: default
 #
-# Copyright (C) 2014 Char Software, Inc.
+# Copyright (C) 2015 Localytics
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,32 +28,46 @@ end
 realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'])
 ldap_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['ldap']['databag'],node['sssd']['ldap']['databag_item'])
 
-include_recipe 'apt::default'
+case node['platform']
+when 'ubuntu'
+  include_recipe 'apt'
+when 'centos'
+  include_recipe 'yum'
+  include_recipe 'yum-epel'
+end
 include_recipe 'resolver::default'
 
-package 'expect'
-package 'sssd'
-package 'sssd-ad'
-package 'sssd-ad-common'
-package 'sssd-tools'
-package 'realmd'
-package 'samba-common'
-package 'samba-libs'
-package 'samba-common-bin'
+node['sssd']['packages'].each do |pkg|
+  package(pkg)
+end
 
-# The sleep 10 is necessary to give the "realm" command enough time before replacing sssd.conf and restarting.
-# Took me a while to figure out :( Pull requests welcome for a better fix!
-bash 'join_domain' do
-  user 'root'
-  code <<-EOF
-  /usr/bin/expect -c 'spawn realm join -U #{realm_databag_contents['user']} #{node['resolver']['search']}
-  expect "Password for #{realm_databag_contents['user']}: "
-  send "#{realm_databag_contents['password']}\r"
-  expect eof'
-  sleep 10
-  EOF
-  not_if "realm list | egrep '^#{node['resolver']['search']}'"
-  notifies :restart, 'service[sssd]'
+case node['platform']
+when 'ubuntu'
+  # The sleep 10 is necessary to give the "realm" command enough time before replacing sssd.conf and restarting.
+  # Took me a while to figure out :( Pull requests welcome for a better fix!
+  bash 'join_domain' do
+    user 'root'
+    code <<-EOF
+    /usr/bin/expect -c 'spawn realm join -U #{realm_databag_contents['user']} #{node['resolver']['search']}
+    expect "Password for #{realm_databag_contents['user']}: "
+    send "#{realm_databag_contents['password']}\r"
+    expect eof'
+    sleep 10
+    EOF
+    not_if "realm list | egrep '^#{node['sssd']['directory_name']}'"
+  end
+when 'centos'
+  bash 'join_domain' do
+    user 'root'
+    code <<-EOF
+    /usr/bin/expect -c 'spawn adcli join -U #{realm_databag_contents['user']} #{node['resolver']['search']}
+    expect "Password for #{realm_databag_contents['user']}: "
+    send "#{realm_databag_contents['password']}\r"
+    expect eof'
+    sleep 10
+    EOF
+    not_if "klist -k | grep -i '@#{node['sssd']['directory_name']}'"
+  end
 end
 
 template '/etc/sssd/sssd.conf' do
@@ -63,16 +77,28 @@ template '/etc/sssd/sssd.conf' do
   mode '0600'
   notifies :restart, 'service[sssd]'
   variables({
-    :domain => node['resolver']['search'],
-    :realm => node['resolver']['search'].upcase,
-    :ldap_suffix => node['resolver']['search'].split('.').map { |s| "dc=#{s}" }.join(','),
+    :domain => node['sssd']['directory_name'],
+    :realm => node['sssd']['directory_name'].upcase,
+    :ldap_suffix => node['sssd']['directory_name'].split('.').map { |s| "dc=#{s}" }.join(','),
     :ldap_user => ldap_databag_contents['user'],
     :ldap_password => ldap_databag_contents['password']
   })
 end
 
+# Since there's no realm in CentOS, we have to manually enable SSSD
+if node['platform'] == 'centos'
+  bash 'enable_sssd' do
+    user 'root'
+    code <<-EOF
+    authconfig --enablesssd --enablesssdauth --update
+    echo 'sudoers:    files sss' >> /etc/nsswitch.conf
+    EOF
+    not_if "grep -i 'sudoers:    files sss' /etc/nsswitch.conf"
+  end
+end
+
 service 'sssd' do
   supports :status => true, :restart => true, :reload => true
   action [:enable, :start]
-  provider Chef::Provider::Service::Upstart
+  provider Chef::Provider::Service::Upstart if node['platform'] == 'ubuntu'
 end

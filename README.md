@@ -5,6 +5,7 @@ Launch, configure, and manage the SSSD service for communication with an AD back
 ## Supported Platforms
 
 - Ubuntu 14.04 LTS
+- CentOS 6.6
 
 ## Attributes
 
@@ -69,10 +70,10 @@ Include `sssd` in your node's `run_list`:
 
 ## License and Authors
 
-Author:: Char Software, Inc. (oss@localytics.com)
+Author:: Localytics (oss@localytics.com)
 
 ```text
-Copyright:: 2014, Char Software, Inc.
+Copyright:: 2015, Localytics
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

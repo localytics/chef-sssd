@@ -243,7 +243,30 @@ Then, create ssh.ldif with the following contents, being sure to replace the Bas
 Next, create sudoers.ldif with SIMILAR contents to the following, being sure to replace the Base DN references with the Base DN of your directory server (ie: dc=example,dc=com). This example LDIF creates a root sudo role and gives *all users* access to that role:
 
   ```
-    ```
+  dn: CN=Sudoers,CN=Users,DC=example,DC=com
+  objectClass: top
+  objectClass: container
+  cn: Sudoers
+  name: Sudoers
+  description: Default container for Sudoers configuration
+  distinguishedName: CN=Sudoers,DC=example,DC=com
+
+  # sudo defaults
+  dn: cn=defaults,CN=Sudoers,CN=Users,DC=example,DC=com
+  objectClass: top
+  objectClass: sudoRole
+  cn: defaults
+  description: Default sudoOptions go here
+  sudoOption: env_keep+=SSH_AUTH_SOCK
+
+  dn: CN=root,CN=Sudoers,CN=Users,DC=example,DC=com
+  objectClass: top
+  objectClass: sudoRole
+  cn: root
+  sudoHost: ALL
+  sudoCommand: ALL
+  sudoUser: ALL
+  ```
 
 To load these LDIFS, execute the following, being sure to replace place-holders with proper values. If you get an error that --user is an invalid option, you'll want to make sure you have the samba package installed alongside ldb-tools:
 

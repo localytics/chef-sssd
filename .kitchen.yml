@@ -9,5 +9,6 @@ provisioner:
 
 platforms:
   - name: ubuntu-14.04
+  - name: centos-6.6
 
 # Setup default suite in .kitchen.local.yml, see .kitchen.local.yml.EXAMPLE for details!

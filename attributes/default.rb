@@ -1,9 +1,19 @@
-# The /etc/resolv.conf nameserver IP address (or addresses) (IE: [ '192.168.1.100', '192.168.1.101' ])
-# These must be able to resolve your AD domain, and *can* be set to Simple AD server IPs.
-default['resolver']['nameservers'] = nil
+# Package lists
+case node['platform']
+when 'ubuntu'
+  default['sssd']['packages'] = %w(expect sssd sssd-ad sssd-ad-common sssd-tools realmd samba-common samba-libs samba-common-bin)
+when 'centos'
+  # CentOS 7 supports realmd, but 6 does not...
+  default['sssd']['packages'] = %w(expect sssd sssd-ad sssd-common sssd-tools adcli authconfig krb5-workstation)
+end
 
-# The AD domain (ie: example.com)
+# The /etc/resolv.conf nameserver IP address (or addresses) (IE: [ '192.168.1.100', '192.168.1.101' ]) and search domain.
+# These settings must allow resolution of your AD domain, and can be set to either Simple AD server IPs or isolated DNS servers.
+default['resolver']['nameservers'] = nil
 default['resolver']['search'] = nil
+
+# The directory name, as specified in "Directory Details" in the AWS console (may match ['resolver']['search'] above)
+default['sssd']['directory_name'] = nil
 
 # Databag: realm username/password, for joining the domain
 # {

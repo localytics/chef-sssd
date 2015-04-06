@@ -52,7 +52,7 @@ when 'ubuntu'
     expect "Password for #{realm_databag_contents['user']}: "
     send "#{realm_databag_contents['password']}\r"
     expect eof'
-    sleep 10
+    while pgrep realm > /dev/null; do echo sleep 5; done
     EOF
     not_if "realm list | egrep '^#{node['sssd']['directory_name']}'"
   end
@@ -64,7 +64,7 @@ when 'centos'
     expect "Password for #{realm_databag_contents['user']}: "
     send "#{realm_databag_contents['password']}\r"
     expect eof'
-    sleep 10
+    while pgrep realm > /dev/null; do echo sleep 5; done
     EOF
     not_if "klist -k | grep -i '@#{node['sssd']['directory_name']}'"
   end

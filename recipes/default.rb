@@ -64,7 +64,7 @@ when 'centos'
     expect "Password for #{realm_databag_contents['user']}: "
     send "#{realm_databag_contents['password']}\r"
     expect eof'
-    while pgrep realm > /dev/null; do sleep 5; done
+    while pgrep adcli > /dev/null; do sleep 5; done
     EOF
     not_if "klist -k | grep -i '@#{node['sssd']['directory_name']}'"
   end

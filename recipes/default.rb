@@ -66,21 +66,6 @@ when 'centos'
   end
 end
 
-template '/etc/sssd/sssd.conf' do
-  source 'sssd.conf.erb'
-  owner 'root'
-  group 'root'
-  mode '0600'
-  notifies :restart, 'service[sssd]'
-  variables({
-    :domain => node['sssd']['directory_name'],
-    :realm => node['sssd']['directory_name'].upcase,
-    :ldap_suffix => node['sssd']['directory_name'].split('.').map { |s| "dc=#{s}" }.join(','),
-    :ldap_user => ldap_databag_contents['user'],
-    :ldap_password => ldap_databag_contents['password']
-  })
-end
-
 # Since there's no realm in CentOS, we have to manually enable SSSD
 if node['platform'] == 'centos'
   bash 'enable_sssd' do
@@ -91,6 +76,21 @@ if node['platform'] == 'centos'
     EOF
     not_if "grep -i 'sudoers:    files sss' /etc/nsswitch.conf"
   end
+end
+
+template '/etc/sssd/sssd.conf' do
+  source 'sssd.conf.erb'
+  owner 'root'
+  group 'root'
+  mode '0600'
+  notifies :restart, 'service[sssd]', :immediately
+  variables({
+    :domain => node['sssd']['directory_name'],
+    :realm => node['sssd']['directory_name'].upcase,
+    :ldap_suffix => node['sssd']['directory_name'].split('.').map { |s| "dc=#{s}" }.join(','),
+    :ldap_user => ldap_databag_contents['user'],
+    :ldap_password => ldap_databag_contents['password']
+  })
 end
 
 service 'sssd' do

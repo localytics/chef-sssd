@@ -43,8 +43,6 @@ end
 
 case node['platform']
 when 'ubuntu'
-  # The sleep 30 is necessary to give the "realm/adcli" command enough time before replacing sssd.conf and restarting.
-  # Took me a while to figure out :( Pull requests welcome for a better fix!
   bash 'join_domain' do
     user 'root'
     code <<-EOF
@@ -52,9 +50,8 @@ when 'ubuntu'
     expect "Password for #{realm_databag_contents['user']}: "
     send "#{realm_databag_contents['password']}\r"
     expect eof'
-    sleep 30
     EOF
-    not_if "realm list | egrep '^#{node['sssd']['directory_name']}'"
+    only_if "realm discover #{node['sssd']['directory_name']} | grep 'configured: no'"
   end
 when 'centos'
   bash 'join_domain' do
@@ -64,7 +61,6 @@ when 'centos'
     expect "Password for #{realm_databag_contents['user']}: "
     send "#{realm_databag_contents['password']}\r"
     expect eof'
-    sleep 30
     EOF
     not_if "klist -k | grep -i '@#{node['sssd']['directory_name']}'"
   end

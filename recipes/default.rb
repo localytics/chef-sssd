@@ -46,7 +46,7 @@ when 'ubuntu'
   bash 'join_domain' do
     user 'root'
     code <<-EOF
-    /usr/bin/expect -c 'spawn realm join -U #{realm_databag_contents['user']} #{node['resolver']['search']}
+    /usr/bin/expect -c 'spawn realm join -U #{realm_databag_contents['user']} #{node['sssd']['directory_name']}
     expect "Password for #{realm_databag_contents['user']}: "
     send "#{realm_databag_contents['password']}\r"
     expect eof'
@@ -57,7 +57,7 @@ when 'centos'
   bash 'join_domain' do
     user 'root'
     code <<-EOF
-    /usr/bin/expect -c 'spawn adcli join -U #{realm_databag_contents['user']} #{node['resolver']['search']}
+    /usr/bin/expect -c 'spawn adcli join -U #{realm_databag_contents['user']} #{node['sssd']['directory_name']}
     expect "Password for #{realm_databag_contents['user']}: "
     send "#{realm_databag_contents['password']}\r"
     expect eof'

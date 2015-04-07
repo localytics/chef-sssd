@@ -53,6 +53,19 @@ when 'ubuntu'
     EOF
     only_if "realm discover #{node['sssd']['directory_name']} | grep 'configured: no'"
   end
+
+  template '/usr/share/pam-configs/my_mkhomedir' do
+   source 'my_mkhomedir.erb'
+    owner 'root'
+    group 'root'
+    mode '0644'
+    notifies :run, "execute[pam-auth-update]", :immediately
+  end
+
+  execute 'pam-auth-update' do
+    command 'pam-auth-update --package'
+    action :nothing
+  end
 when 'centos'
   bash 'join_domain' do
     user 'root'
@@ -64,14 +77,11 @@ when 'centos'
     EOF
     not_if "klist -k | grep -i '@#{node['sssd']['directory_name']}'"
   end
-end
 
-# Since there's no realm in CentOS, we have to manually enable SSSD
-if node['platform'] == 'centos'
   bash 'enable_sssd' do
     user 'root'
     code <<-EOF
-    authconfig --enablesssd --enablesssdauth --update
+    authconfig --enablemkhomedir --enablesssd --enablesssdauth --update
     echo 'sudoers:    files sss' >> /etc/nsswitch.conf
     EOF
     not_if "grep -i 'sudoers:    files sss' /etc/nsswitch.conf"

@@ -26,3 +26,12 @@ end
 describe command("/usr/bin/sudo -U #{$node['sssd']['test_user']} -l") do
   its(:stdout) { should_not match /is not allowed to run sudo on/ }
 end
+
+# Used just to create the directory if it doesn't already exist
+describe command("/bin/su #{$node['sssd']['test_user']} -c /bin/true") do
+  its(:exit_status) { should eq 0 }
+end
+
+describe file("/home/#{$node['sssd']['test_user']}") do
+  it { should be_directory }
+end

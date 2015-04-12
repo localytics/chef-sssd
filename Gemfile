@@ -28,4 +28,5 @@ group :development do
   gem 'foodcritic'
   gem 'chefspec'
   gem 'vagrant-wrapper'
+  gem 'kitchen-ec2'
 end

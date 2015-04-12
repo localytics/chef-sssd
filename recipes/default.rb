@@ -43,19 +43,26 @@ end
 
 case node['platform']
 when 'ubuntu'
+  template '/etc/realmd.conf' do
+    source 'realmd.conf.erb'
+    owner 'root'
+    group 'root'
+    mode '0644'
+  end
+
   bash 'join_domain' do
     user 'root'
     code <<-EOF
-    /usr/bin/expect -c 'spawn realm join -U #{realm_databag_contents['user']} #{node['sssd']['directory_name']}
+    /usr/bin/expect -c 'spawn adcli join -U #{realm_databag_contents['user']} #{node['sssd']['directory_name']}
     expect "Password for #{realm_databag_contents['user']}: "
     send "#{realm_databag_contents['password']}\r"
     expect eof'
     EOF
-    only_if "realm discover #{node['sssd']['directory_name']} | grep 'configured: no'"
+#    only_if "realm discover #{node['sssd']['directory_name']} | grep 'configured: no'"
   end
 
   template '/usr/share/pam-configs/my_mkhomedir' do
-   source 'my_mkhomedir.erb'
+    source 'my_mkhomedir.erb'
     owner 'root'
     group 'root'
     mode '0644'
@@ -97,9 +104,7 @@ template '/etc/sssd/sssd.conf' do
   variables({
     :domain => node['sssd']['directory_name'],
     :realm => node['sssd']['directory_name'].upcase,
-    :ldap_suffix => node['sssd']['directory_name'].split('.').map { |s| "dc=#{s}" }.join(','),
-    :ldap_user => ldap_databag_contents['user'],
-    :ldap_password => ldap_databag_contents['password']
+    :shortened_node => node['hostname'][0..14].upcase
   })
 end
 

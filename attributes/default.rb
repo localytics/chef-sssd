@@ -1,9 +1,11 @@
 # Package lists
 case node['platform']
 when 'ubuntu'
-  default['sssd']['packages'] = %w(expect sssd sssd-ad sssd-ad-common sssd-tools realmd samba-common samba-libs samba-common-bin)
+  # We install samba-common, samba-libs, and samba-common-bin ahead of time due to:
+  #   https://bugs.launchpad.net/ubuntu/+source/realmd/+bug/1333694
+  default['sssd']['packages'] = %w(expect sssd sssd-ad sssd-ad-common sssd-tools adcli realmd samba-common samba-libs samba-common-bin)
 when 'centos'
-  # CentOS 7 supports realmd, but 6 does not...
+  # CentOS 7 supports realmd, but 6 does not. We'll call adcli directly until RHEL 7.
   default['sssd']['packages'] = %w(expect sssd sssd-ad sssd-common sssd-tools adcli authconfig krb5-workstation)
 end
 

@@ -243,7 +243,7 @@ Then, create ssh.ldif with the following contents, being sure to replace the Bas
 Next, create sudoers.ldif with SIMILAR contents to the following, being sure to replace the Base DN references with the Base DN of your directory server (ie: dc=example,dc=com). This example LDIF creates a root sudo role and gives *all users* access to that role:
 
   ```
-  dn: CN=Sudoers,CN=Users,DC=example,DC=com
+  dn: CN=Sudoers,DC=example,DC=com
   objectClass: top
   objectClass: container
   cn: Sudoers
@@ -252,14 +252,14 @@ Next, create sudoers.ldif with SIMILAR contents to the following, being sure to 
   distinguishedName: CN=Sudoers,DC=example,DC=com
 
   # sudo defaults
-  dn: cn=defaults,CN=Sudoers,CN=Users,DC=example,DC=com
+  dn: cn=defaults,CN=Sudoers,DC=example,DC=com
   objectClass: top
   objectClass: sudoRole
   cn: defaults
   description: Default sudoOptions go here
   sudoOption: env_keep+=SSH_AUTH_SOCK
 
-  dn: CN=root,CN=Sudoers,CN=Users,DC=example,DC=com
+  dn: CN=root,CN=Sudoers,DC=example,DC=com
   objectClass: top
   objectClass: sudoRole
   cn: root
@@ -431,17 +431,7 @@ Your server should successfully be joined to the domain. Unfortunately, realm do
   ldap_id_mapping = True
   fallback_homedir = /home/%u
 
-  ldap_tls_reqcert = never
-  ldap_uri = ldap://example.com
-  ldap_search_base = dc=example,dc=com
-  ldap_user_search_base = cn=Users,dc=example,dc=com
-  ldap_user_object_class = user
-  ldap_user_name = sAMAccountName
   ldap_user_ssh_public_key = sshPublicKey
-  ldap_group_search_base = cn=Users,dc=example,dc=com
-  ldap_sudo_search_base = cn=Sudoers,cn=Users,dc=example,dc=com
-  ldap_default_bind_dn = suser@example.com
-  ldap_default_authtok = ExamplePassword
   ```
 
 Finally, add the following lines to /etc/ssh/sshd_config, which will tell OpenSSH to look for SSH keys via SSSD:
@@ -520,22 +510,6 @@ The format of the data bag is:
   {
     "id": "realm",
     "user": "administrator",
-    "password": "password"
-  }
-  ```
-
-Next, create a data bag with a username and password that has access to read ou=Sudoers inside Simple AD (if you used our example ACL above, this is any authenticated user):
-
-  ```bash
-  knife solo data bag create sssd_credentials ldap -c .chef/solo.rb
-  ```
-
-The format of the data bag is:
-
-  ```json
-  {
-    "id": "ldap",
-    "user": "suser",
     "password": "password"
   }
   ```

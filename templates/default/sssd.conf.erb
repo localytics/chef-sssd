@@ -4,13 +4,14 @@ services = nss, pam, ssh, sudo
 domains = <%= @domain %>
 
 [nss]
-filter_users = root,named,avahi,haldaemon,dbus,radiusd,news,nscd
+filter_users = root,named,avahi,haldaemon,dbus,radiusd,news,nscd,centos,ubuntu
 
 [pam]
 
 [ssh]
 
 [sudo]
+debug_level = 6
 
 [domain/<%= @domain %>]
 id_provider = ad
@@ -22,7 +23,7 @@ realmd_tags = manages-system joined-with-samba
 cache_credentials = True
 krb5_store_password_if_offline = True
 default_shell = /bin/bash
-ldap_sasl_authid = <%= @shortened_node %>$
+ldap_sasl_authid = <%= @sasl_authid %>$
 ldap_id_mapping = True
 fallback_homedir = /home/%u
 

@@ -1,6 +1,6 @@
 # sssd-cookbook
 
-Launch, configure, and manage the SSSD service for communication with an AD backend such as Amazon Directory Service (Simple DS)
+Launch, configure, and manage the SSSD service for communication with an AD backend such as Amazon Directory Service (Simple AD)
 
 ## Supported Platforms
 
@@ -17,39 +17,33 @@ Launch, configure, and manage the SSSD service for communication with an AD back
     <th>Default</th>
   </tr>
   <tr>
-    <td><tt>['resolver']['nameservers']</tt></td>
+    <td><tt>['sssd']['packages']</tt></td>
     <td>Array</td>
-    <td>one or more active directory servers (for use with resolver cookbook)</td>
+    <td>list of packages to install prior to adcli join</td>
+    <td><tt>varies by OS</tt></td>
+  </tr>
+  <tr>
+    <td><tt>['sssd']['computer_name']</tt></td>
+    <td>String</td>
+    <td>an optional alternate computer name to use when joining the domain</td>
     <td><tt>nil</tt></td>
   </tr>
   <tr>
-    <td><tt>['resolver']['search']</tt></td>
+    <td><tt>['sssd']['directory_name']</tt></td>
     <td>String</td>
-    <td>active directory search domain (for use with resolver cookbook)</td>
+    <td>the directory name, as specified in "Directory Details" in the AWS console</td>
     <td><tt>nil</tt></td>
   </tr>
   <tr>
-    <td><tt>['sssd']['realm']['user']</tt></td>
+    <td><tt>['sssd']['realm']['databag']</tt></td>
     <td>String</td>
-    <td>username to use to join the domain via realm</td>
+    <td>databag that contains the username and password used in "adcli join" or "realm join"</td>
     <td><tt>nil</tt></td>
   </tr>
   <tr>
-    <td><tt>['sssd']['realm']['password']</tt></td>
+    <td><tt>['sssd']['realm']['databag_item']</tt></td>
     <td>String</td>
-    <td>password to use to join the domain via realm</td>
-    <td><tt>nil</tt></td>
-  </tr>
-  <tr>
-    <td><tt>['sssd']['ldap']['user']</tt></td>
-    <td>String</td>
-    <td>optional username to use to access data via the ldap sssd provider</td>
-    <td><tt>nil</tt></td>
-  </tr>
-  <tr>
-    <td><tt>['sssd']['ldap']['password']</tt></td>
-    <td>String</td>
-    <td>optional password to use to access data via the ldap sssd provider</td>
+    <td>databag item that contains the username and password used in "adcli join" or "realm join"</td>
     <td><tt>nil</tt></td>
   </tr>
 </table>

@@ -17,16 +17,31 @@
 # limitations under the License.
 #
 
-if [['realm', 'databag'],['realm', 'databag_item'],['ldap', 'databag'],['ldap', 'databag_item']].any? {|key, subkey| node['sssd'][key][subkey].nil? }
-  Chef::Application.fatal!("You must setup the appropriate databag attributes!")
+if [['realm', 'databag'],['realm', 'databag_item']].any? {|key, subkey| node['sssd'][key][subkey].nil? }
+  Chef::Application.fatal!("You must setup the appropriate databags attributes!")
 end
 
-# These are created with:
+if node['sssd']['directory_name'].nil?
+  Chef::Application.fatal!("You must set the directory name!")
+end
+
+if node['sssd']['computer_name'].nil?
+  # If ohai has set the ec2 instance_id, let's use it as the computer_name
+  if !node['ec2']['instance_id'].nil?
+    computer_name = node['ec2']['instance_id']
+  else
+    # We must limit the computer name to 15 characters, to avoid truncating:
+    #   https://bugs.freedesktop.org/show_bug.cgi?id=69016
+    computer_name = node['fqdn'][0..14]
+  end
+else
+  computer_name = node['sssd']['computer_name']
+end
+
+# This is created with:
 #   openssl rand -base64 512 | tr -d '\r\n' > test/support/encrypted_data_bag_secret
 #   knife solo data bag create sssd_credentials realm -c .chef/solo.rb
-#   knife solo data bag create sssd_credentials ldap -c .chef/solo.rb
 realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'])
-ldap_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['ldap']['databag'],node['sssd']['ldap']['databag_item'])
 
 case node['platform']
 when 'ubuntu'
@@ -35,49 +50,41 @@ when 'centos'
   include_recipe 'yum'
   include_recipe 'yum-epel'
 end
-include_recipe 'resolver::default'
 
 node['sssd']['packages'].each do |pkg|
   package(pkg)
 end
 
+# The ideal here (and future PR) is "realm join", but for now, we use adcli due to:
+#   CentOS 6: realm is only available in RHEL/CentOS 7
+#   Ubuntu 14.04: due to necessary hacky work-arounds to this bug: https://bugs.launchpad.net/ubuntu/+source/realmd/+bug/1333694
+bash 'join_domain' do
+  user 'root'
+  code <<-EOF
+  /usr/bin/expect -c 'spawn adcli join --host-fqdn #{computer_name} -U #{realm_databag_contents['username']} #{node['sssd']['directory_name']}
+  expect "Password for #{realm_databag_contents['username']}: "
+  send "#{realm_databag_contents['password']}\r"
+  expect eof'
+  EOF
+  not_if "klist -k | grep -i '@#{node['sssd']['directory_name']}'"
+end
+
 case node['platform']
 when 'ubuntu'
-  bash 'join_domain' do
-    user 'root'
-    code <<-EOF
-    /usr/bin/expect -c 'spawn realm join -U #{realm_databag_contents['user']} #{node['sssd']['directory_name']}
-    expect "Password for #{realm_databag_contents['user']}: "
-    send "#{realm_databag_contents['password']}\r"
-    expect eof'
-    EOF
-    only_if "realm discover #{node['sssd']['directory_name']} | grep 'configured: no'"
-  end
-
   template '/usr/share/pam-configs/my_mkhomedir' do
-   source 'my_mkhomedir.erb'
+    source 'my_mkhomedir.erb'
     owner 'root'
     group 'root'
     mode '0644'
-    notifies :run, "execute[pam-auth-update]", :immediately
+    notifies :run, "execute[pam-auth-update]"
   end
 
+  # Enable automatic home directory creation
   execute 'pam-auth-update' do
     command 'pam-auth-update --package'
     action :nothing
   end
 when 'centos'
-  bash 'join_domain' do
-    user 'root'
-    code <<-EOF
-    /usr/bin/expect -c 'spawn adcli join -U #{realm_databag_contents['user']} #{node['sssd']['directory_name']}
-    expect "Password for #{realm_databag_contents['user']}: "
-    send "#{realm_databag_contents['password']}\r"
-    expect eof'
-    EOF
-    not_if "klist -k | grep -i '@#{node['sssd']['directory_name']}'"
-  end
-
   bash 'enable_sssd' do
     user 'root'
     code <<-EOF
@@ -97,14 +104,12 @@ template '/etc/sssd/sssd.conf' do
   variables({
     :domain => node['sssd']['directory_name'],
     :realm => node['sssd']['directory_name'].upcase,
-    :ldap_suffix => node['sssd']['directory_name'].split('.').map { |s| "dc=#{s}" }.join(','),
-    :ldap_user => ldap_databag_contents['user'],
-    :ldap_password => ldap_databag_contents['password']
+    :ldap_base => node['sssd']['directory_name'].split('.').map { |s| "dc=#{s}" }.join(','),
+    :sasl_authid => computer_name.upcase
   })
 end
 
 service 'sssd' do
   supports :status => true, :restart => true, :reload => true
-  action [:enable, :start]
-  provider Chef::Provider::Service::Upstart if node['platform'] == 'ubuntu'
+  action [:enable]
 end

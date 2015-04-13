@@ -243,7 +243,7 @@ Then, create ssh.ldif with the following contents, being sure to replace the Bas
 Next, create sudoers.ldif with SIMILAR contents to the following, being sure to replace the Base DN references with the Base DN of your directory server (ie: dc=example,dc=com). This example LDIF creates a root sudo role and gives *all users* access to that role:
 
   ```
-  dn: CN=Sudoers,CN=Users,DC=example,DC=com
+  dn: CN=Sudoers,DC=example,DC=com
   objectClass: top
   objectClass: container
   cn: Sudoers
@@ -252,14 +252,14 @@ Next, create sudoers.ldif with SIMILAR contents to the following, being sure to 
   distinguishedName: CN=Sudoers,DC=example,DC=com
 
   # sudo defaults
-  dn: cn=defaults,CN=Sudoers,CN=Users,DC=example,DC=com
+  dn: cn=defaults,CN=Sudoers,DC=example,DC=com
   objectClass: top
   objectClass: sudoRole
   cn: defaults
   description: Default sudoOptions go here
   sudoOption: env_keep+=SSH_AUTH_SOCK
 
-  dn: CN=root,CN=Sudoers,CN=Users,DC=example,DC=com
+  dn: CN=root,CN=Sudoers,DC=example,DC=com
   objectClass: top
   objectClass: sudoRole
   cn: root
@@ -276,7 +276,7 @@ To load these LDIFS, execute the following, being sure to replace place-holders 
   ldbadd -H "ldap://example.com" sudoers.ldif --user "<Admin Account Username>" --password "<Admin Account Password>"
   ```
 
-Now, create at least two users: one that will be used to test that the setup is functioning correctly, and the other that will be used by SSSD to access sudoers data inside LDAP. For our example below (users.ldif), we have "tuser" and "suser":
+Now, create a user that will be used to test that the setup is functioning correctly. For our example below (users.ldif), we have "tuser":
 
   ```
   dn: CN=Test User,CN=Users,DC=example,DC=com
@@ -304,32 +304,6 @@ Now, create at least two users: one that will be used to test that the setup is 
   objectClass: person
   objectClass: organizationalPerson
   objectClass: user
-  
-  dn: CN=SSSD User,CN=Users,DC=example,DC=com
-  cn: SSSD User
-  sn: User
-  givenName: SSSD
-  displayName: SSSD User
-  name: SSSD User
-  sAMAccountName: suser
-  userPrincipalName: suser@example.com
-  instanceType: 4
-  badPwdCount: 0
-  codePage: 0
-  countryCode: 0
-  badPasswordTime: 0
-  lastLogoff: 0
-  lastLogon: 0
-  accountExpires: 9223372036854775807
-  logonCount: 0
-  pwdLastSet: 130598522940000000
-  lockoutTime: 0
-  userAccountControl: 66048
-  msDS-SupportedEncryptionTypes: 0
-  objectClass: top
-  objectClass: person
-  objectClass: organizationalPerson
-  objectClass: user
   ```
 
 And import:
@@ -338,20 +312,20 @@ And import:
   ldbadd -H "ldap://example.com" users.ldif --user "<Admin Account Username>" --password "<Admin Account Password>"
   ```
 
-Utilizing a host that has samba-tool installed, set passwords for the above new accounts, being sure to replace place-holders with proper values:
+*Optionally*, utlizing a host that has samba-tool installed, set a password for the new account, being sure to replace place-holders with proper values:
 
   ```bash
-  samba-tool user setpassword --newpassword "<password>" -H "ldap://example.com" --user "<Admin Account Username>" --password "<Admin Account Password>" suser
   samba-tool user setpassword --newpassword "<password>" -H "ldap://example.com" --user "<Admin Account Username>" --password "<Admin Account Password>" tuser
   ```
   
-You must also grant authentication users read access to the ou=Sudoers container that was created via the above LDIF. Again, using samba-tool:
+You must also grant authenticated users read access to the CN=Sudoers container that was created via previous LDIFs. Again, using samba-tool against *each* AD server (as this will not replicate):
 
   ```bash
-  samba-tool dsacl set -H "ldap://example.com" --user "<Admin Account Username>" --password "<Admin Account Password>" --objectdn="CN=Sudoers,CN=Users,DC=example,DC=com" --sddl="(A;CI;GR;;;AU)"
+  samba-tool dsacl set -H "ldap://198.51.100.10" --user "<Admin Account Username>" --password "<Admin Account Password>" --objectdn="CN=Sudoers,DC=example,DC=com" --sddl="(A;CI;GR;;;AU)"
+  samba-tool dsacl set -H "ldap://203.0.113.20" --user "<Admin Account Username>" --password "<Admin Account Password>" --objectdn="CN=Sudoers,DC=example,DC=com" --sddl="(A;CI;GR;;;AU)"
   ```
   
-Now add an SSH key to the *test user* you've created. Be sure to replace the Base DN references with the Base DN of your directory server (again, as an example: dc=example,dc=com) and populating a valid public SSH key:
+Now add an SSH key to the test user you've created. Be sure to replace the Base DN references with the Base DN of your directory server (again, as an example: dc=example,dc=com) and populating a valid public SSH key:
 
   ```
   dn: CN=Test User,CN=Users,DC=example,DC=com
@@ -397,8 +371,10 @@ You should see information about your Simple AD domain.  Next, execute the follo
   apt-get -y install sssd sssd-ad sssd-ad-common sssd-tools realmd samba-common samba-libs samba-common-bin
   realm join -U <Admin Account Username> example.com
   ```
+  
+*NOTE*: Encountering a package error during realm join? Check out https://bugs.launchpad.net/ubuntu/+source/realmd/+bug/1333694. We've worked around the problem by temporarily using adcli in our Chef cookbook.
 
-Your server should successfully be joined to the domain. Unfortunately, realm doesn't give us a completely usable SSSD configuration file, so it's necessary to overwrite /etc/sssd/sssd.conf with the following, being sure to replace any example.com references with your actual configuration and fill in appropriate credentials:
+Your server should successfully be joined to the domain. Unfortunately, realm doesn't give us a completely usable SSSD configuration file for our setup, so it's necessary to overwrite /etc/sssd/sssd.conf with the following, being sure to replace any example.com references with your actual configuration:
 
   ```
   [sssd]
@@ -407,7 +383,7 @@ Your server should successfully be joined to the domain. Unfortunately, realm do
   domains = example.com
 
   [nss]
-  filter_users = root,named,avahi,haldaemon,dbus,radiusd,news,nscd
+  filter_users = root,named,avahi,haldaemon,dbus,radiusd,news,nscd,centos,ubuntu
 
   [pam]
 
@@ -418,9 +394,6 @@ Your server should successfully be joined to the domain. Unfortunately, realm do
   [domain/example.com]
   id_provider = ad
   access_provider = ad
-  auth_provider = ad
-  chpass_provider = ad
-  sudo_provider = ldap
 
   ad_domain = example.com
   krb5_realm = EXAMPLE.COM
@@ -431,17 +404,7 @@ Your server should successfully be joined to the domain. Unfortunately, realm do
   ldap_id_mapping = True
   fallback_homedir = /home/%u
 
-  ldap_tls_reqcert = never
-  ldap_uri = ldap://example.com
-  ldap_search_base = dc=example,dc=com
-  ldap_user_search_base = cn=Users,dc=example,dc=com
-  ldap_user_object_class = user
-  ldap_user_name = sAMAccountName
   ldap_user_ssh_public_key = sshPublicKey
-  ldap_group_search_base = cn=Users,dc=example,dc=com
-  ldap_sudo_search_base = cn=Sudoers,cn=Users,dc=example,dc=com
-  ldap_default_bind_dn = suser@example.com
-  ldap_default_authtok = ExamplePassword
   ```
 
 Finally, add the following lines to /etc/ssh/sshd_config, which will tell OpenSSH to look for SSH keys via SSSD:
@@ -489,6 +452,8 @@ Testing the configuration of Simple AD, SSSD, and OpenSSH is simple with our SSS
 
 In order to test that your SSSD & Simple AD setup is working properly, you'll need to run the following on a host that has access to a configured Simple AD instance. At Localytics, we use VPN to gain access from our local machines, but YMMV. While you probably want to setup the following in an organization-specific wrapper cookbook, we've tried to make it as easy as possible to clone the sssd cookbook and simply "get it working".
 
+*NOTE*: our Chef cookbook temporarily uses adcli instead of realm to join the domain due to https://bugs.launchpad.net/ubuntu/+source/realmd/+bug/1333694. Future versions will revert back to using realm.
+
 To get started, make sure you have the chef-dk installed (https://downloads.chef.io/chef-dk/) and a sane ruby setup, then simply:
 
   ```bash
@@ -499,7 +464,7 @@ To get started, make sure you have the chef-dk installed (https://downloads.chef
   cp .kitchen.local.yml.EXAMPLE .kitchen.local.yml
   ```
 
-Then edit your .kitchen.local.yml with the IP addresses of your primary and secondary AD servers, AD domain, and a user that has at least one public key and one sudo role configured). The latter is used by integration tests to verify that all services are functioning correctly. FYI, our example user, 'Guest', likely does NOT have the configuration necessary to pass the tests. You'll want to make this 'tuser' if you used our examples above.
+Then edit your .kitchen.local.yml with the various information necessary, such as EC2 instance information, IP addresses of your primary and secondary AD servers, AD domain, and a user that has at least one public key and one sudo role configured). The latter is used by integration tests to verify that all services are functioning correctly. FYI, our default test user, 'Guest', likely does NOT have the configuration necessary to pass the integration tests. You'll want to make this 'tuser' if you used our examples above.
 
 Next, create an encrypted data bag key used for locally created data bags:
 
@@ -519,23 +484,7 @@ The format of the data bag is:
   ```json
   {
     "id": "realm",
-    "user": "administrator",
-    "password": "password"
-  }
-  ```
-
-Next, create a data bag with a username and password that has access to read ou=Sudoers inside Simple AD (if you used our example ACL above, this is any authenticated user):
-
-  ```bash
-  knife solo data bag create sssd_credentials ldap -c .chef/solo.rb
-  ```
-
-The format of the data bag is:
-
-  ```json
-  {
-    "id": "ldap",
-    "user": "suser",
+    "username": "administrator",
     "password": "password"
   }
   ```

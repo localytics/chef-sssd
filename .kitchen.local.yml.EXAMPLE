@@ -1,20 +1,41 @@
+driver:
+  name: ec2
+
+provisioner:
+  name: chef_zero
+  data_bags_path: test/support/data_bags
+  encrypted_data_bag_secret_key_path: test/support/encrypted_data_bag_secret
+
+platforms:
+  - name: centos-6.6
+  - name: ubuntu-14.04
+
+# We use the ec2_hints recipe because we can't use ec2 ohai directly with test-kitchen, due to:
+#   https://github.com/test-kitchen/test-kitchen/pull/490
+# We need dhclient-helper for CentOS only due to: 
+#   https://www.centos.org/forums/viewtopic.php?t=24741
+# We need hostnames and resolver cookbooks to setup appropriate DNS resolution for sudo,
+# otherwise additional SSSD delays occur related to:
+#   https://fedorahosted.org/sssd/ticket/2043
 suites:
   - name: default
     run_list:
+      - recipe[test-helper::ec2_hints]
+      - recipe[test-helper::dhclient]
+      - recipe[hostnames::default]
+      - recipe[resolver::default]
       - recipe[sssd::default]
-      - recipe[test-helper::default]
+      - recipe[test-helper::serverspec]
     attributes:
+      set_fqdn: '*.example.com'
       resolver:
         nameservers:
           - 198.51.100.10
           - 203.0.113.20
-        search: 'example.com'
+        search: 'us-east-1.sandbox.example.com'
       sssd:
-        directory_name: 'example.com'
+        directory_name: 'ldap.us-east-1.sandbox.example.com'
         test_user: 'Guest'
         realm:
           databag: 'sssd_credentials'
           databag_item: 'realm'
-        ldap:
-          databag: 'sssd_credentials'
-          databag_item: 'ldap'

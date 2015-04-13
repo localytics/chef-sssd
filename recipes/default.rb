@@ -100,13 +100,24 @@ template '/etc/sssd/sssd.conf' do
   owner 'root'
   group 'root'
   mode '0600'
-  notifies :restart, 'service[sssd]'
+  notifies :stop, 'service[sssd]', :immediately
+  notifies :run, 'bash[fix_sssd_cache]', :immediately
+  notifies :start, 'service[sssd]', :immediately
   variables({
     :domain => node['sssd']['directory_name'],
     :realm => node['sssd']['directory_name'].upcase,
     :ldap_base => node['sssd']['directory_name'].split('.').map { |s| "dc=#{s}" }.join(','),
     :sasl_authid => computer_name.upcase
   })
+end
+
+bash 'fix_sssd_cache' do
+  user 'root'
+  code <<-EOF
+  sss_cache -E
+  rm -f /var/lib/sss/db/cache_#{node['sssd']['directory_name']}.ldb
+  EOF
+  action :nothing
 end
 
 service 'sssd' do

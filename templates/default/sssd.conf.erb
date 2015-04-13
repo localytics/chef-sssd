@@ -11,7 +11,6 @@ filter_users = root,named,avahi,haldaemon,dbus,radiusd,news,nscd,centos,ubuntu
 [ssh]
 
 [sudo]
-debug_level = 6
 
 [domain/<%= @domain %>]
 id_provider = ad
@@ -19,11 +18,9 @@ access_provider = ad
 
 ad_domain = <%= @domain %>
 krb5_realm = <%= @realm %>
-realmd_tags = manages-system joined-with-samba 
 cache_credentials = True
 krb5_store_password_if_offline = True
 default_shell = /bin/bash
-ldap_sasl_authid = <%= @sasl_authid %>$
 ldap_id_mapping = True
 fallback_homedir = /home/%u
 

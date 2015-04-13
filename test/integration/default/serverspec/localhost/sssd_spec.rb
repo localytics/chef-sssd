@@ -21,13 +21,6 @@ describe command("fail_count=0; while ! id #{$node['sssd']['test_user']}; do sle
   its(:exit_status) { should eq 0 }
 end
 
-# We sleep until the test user has accessible sudo rules, up to five minutes,
-# due to not having an easy way of actually knowing if SSSD is online yet:
-#   https://fedorahosted.org/sssd/ticket/385
-describe command("fail_count=0; while ! sudo -U #{$node['sssd']['test_user']} -l | grep 'may run the following commands on'; do sleep 5; fail_count=$(expr $fail_count + 1); if [ $fail_count -gt 60 ]; then exit 1; fi; done") do
-  its(:exit_status) { should eq 0 }
-end
-
 describe user($node['sssd']['test_user']) do
   it { should exist }
 end

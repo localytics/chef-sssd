@@ -10,7 +10,7 @@ default['sssd']['directory_name'] = nil
 
 # {
 #   "id": "realm",
-#   "user": "example",
+#   "username": "administrator",
 #   "password": "password"
 # }
 default['sssd']['realm']['databag'] = nil

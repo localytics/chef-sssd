@@ -484,7 +484,7 @@ The format of the data bag is:
   ```json
   {
     "id": "realm",
-    "user": "administrator",
+    "username": "administrator",
     "password": "password"
   }
   ```

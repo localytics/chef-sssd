@@ -61,8 +61,8 @@ end
 bash 'join_domain' do
   user 'root'
   code <<-EOF
-  /usr/bin/expect -c 'spawn adcli join --host-fqdn #{computer_name} -U #{realm_databag_contents['user']} #{node['sssd']['directory_name']}
-  expect "Password for #{realm_databag_contents['user']}: "
+  /usr/bin/expect -c 'spawn adcli join --host-fqdn #{computer_name} -U #{realm_databag_contents['username']} #{node['sssd']['directory_name']}
+  expect "Password for #{realm_databag_contents['username']}: "
   send "#{realm_databag_contents['password']}\r"
   expect eof'
   EOF

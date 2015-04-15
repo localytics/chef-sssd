@@ -14,7 +14,7 @@ platforms:
 #   https://github.com/test-kitchen/test-kitchen/pull/490
 # We need dhclient-helper for CentOS only due to: 
 #   https://www.centos.org/forums/viewtopic.php?t=24741
-# We need hostnames and resolver cookbooks to setup appropriate DNS resolution for sudo,
+# We need hostname and resolver cookbooks to setup appropriate DNS resolution for sudo,
 # otherwise additional SSSD delays occur related to:
 #   https://fedorahosted.org/sssd/ticket/2043
 suites:
@@ -22,7 +22,7 @@ suites:
     run_list:
       - recipe[test-helper::ec2_hints]
       - recipe[test-helper::dhclient]
-      - recipe[hostnames::default]
+      - recipe[hostname::default]
       - recipe[resolver::default]
       - recipe[sssd::default]
       - recipe[test-helper::serverspec]

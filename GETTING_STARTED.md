@@ -454,23 +454,28 @@ In order to test that your SSSD & Simple AD setup is working properly, you'll ne
 
 *NOTE*: our Chef cookbook temporarily uses adcli instead of realm to join the domain due to https://bugs.launchpad.net/ubuntu/+source/realmd/+bug/1333694. Future versions will revert back to using realm.
 
-To get started, make sure you have the chef-dk installed (https://downloads.chef.io/chef-dk/) and a sane ruby setup, then simply:
+To get started, make sure you have the components of chef-dk installed (https://downloads.chef.io/chef-dk/) and a sane ruby setup, then simply:
 
   ```bash
   git clone git@github.com:localytics/chef-sssd
   cd chef-sssd
   gem install bundler
   bundle
+  kitchen test
+  ```
+
+Some more advanced tests are available via .kitchen.local.yml.EXAMPLE if you've got access to your Simple AD server:
+
+  ```bash
   cp .kitchen.local.yml.EXAMPLE .kitchen.local.yml
   ```
 
-Then edit your .kitchen.local.yml with the various information necessary, such as EC2 instance information, IP addresses of your primary and secondary AD servers, AD domain, and a user that has at least one public key and one sudo role configured). The latter is used by integration tests to verify that all services are functioning correctly. FYI, our default test user, 'Guest', likely does NOT have the configuration necessary to pass the integration tests. You'll want to make this 'tuser' if you used our examples above.
+Then edit your .kitchen.local.yml with the various information necessary, such as instance information, IP addresses of your primary and secondary AD servers, AD domain, and a user that has at least one public key and one sudo role configured. The latter is used by integration tests to verify that all services are functioning correctly. FYI, our default test user, 'Guest', likely does NOT have the configuration necessary to pass the integration tests. You'll want to make this 'tuser' if you used our examples above.
 
-Next, create an encrypted data bag key used for locally created data bags:
+Next, create an encrypted data bag secret key used for locally created data bags:
 
   ```bash
-  mkdir -p test/support/data_bags
-  openssl rand -base64 512 | tr -d '\r\n' > test/support/encrypted_data_bag_secret
+  openssl rand -base64 512 | tr -d '\r\n' > test/integration/with-registration/encrypted_data_bag_secret_key
   ```
 
 Then, configure an encrypted data bag with a valid administrative username and password, used for joining the domain with 'realm':

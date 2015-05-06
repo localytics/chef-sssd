@@ -20,4 +20,5 @@ bin/*
 .kitchen.local.yml
 
 # Local test support files (like databags)
-test/support
+test/integration/with-registration/data_bags
+test/integration/with-registration/encrypted_data_bag_secret_key

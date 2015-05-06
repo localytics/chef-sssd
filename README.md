@@ -17,6 +17,12 @@ Launch, configure, and manage the SSSD service for communication with an AD back
     <th>Default</th>
   </tr>
   <tr>
+    <td><tt>['sssd']['join_domain']</tt></td>
+    <td>Boolean</td>
+    <td>whether or not to join the domain (mostly useless to change unless testing)</td>
+    <td><tt>true</tt></td>
+  </tr>
+  <tr>
     <td><tt>['sssd']['packages']</tt></td>
     <td>Array</td>
     <td>list of packages to install prior to adcli join</td>
@@ -25,7 +31,7 @@ Launch, configure, and manage the SSSD service for communication with an AD back
   <tr>
     <td><tt>['sssd']['computer_name']</tt></td>
     <td>String</td>
-    <td>an optional alternate computer name to use when joining the domain</td>
+    <td>an optional alternate computer name to use when joining the domain (IE: ec2 instance ID)</td>
     <td><tt>nil</tt></td>
   </tr>
   <tr>
@@ -61,6 +67,17 @@ Include `sssd` in your node's `run_list`:
   ]
 }
 ```
+
+## Testing
+
+See .kitchen.yml and .kitchen.local.yml.EXAMPLE.
+
+To create a local databag for use with test kitchen's with-registration suite, do:
+
+  ```bash
+  $ openssl rand -base64 512 | tr -d '\r\n' > test/integration/with-registration/encrypted_data_bag_secret_key
+  $ knife solo data bag create sssd_credentials realm -c .chef/solo.rb
+  ```
 
 ## License and Authors
 

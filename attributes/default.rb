@@ -5,6 +5,7 @@ when 'centos'
   default['sssd']['packages'] = %w(expect sssd sssd-ad sssd-common sssd-tools adcli authconfig krb5-workstation)
 end
 
+default['sssd']['join_domain'] = true
 default['sssd']['computer_name'] = nil
 default['sssd']['directory_name'] = nil
 
@@ -13,5 +14,5 @@ default['sssd']['directory_name'] = nil
 #   "username": "administrator",
 #   "password": "password"
 # }
-default['sssd']['realm']['databag'] = nil
-default['sssd']['realm']['databag_item'] = nil
+default['sssd']['realm']['databag'] = 'sssd_credentials'
+default['sssd']['realm']['databag_item'] = 'realm'

@@ -99,8 +99,6 @@ template '/etc/sssd/sssd.conf' do
   variables({
     :domain => node['sssd']['directory_name'],
     :realm => node['sssd']['directory_name'].upcase,
-    :ldap_base => node['sssd']['directory_name'].split('.').map { |s| "dc=#{s}" }.join(','),
-    :sasl_authid => computer_name.upcase
   })
 end
 

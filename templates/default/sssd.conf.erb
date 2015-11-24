@@ -13,6 +13,10 @@ filter_users = root,named,avahi,haldaemon,dbus,radiusd,news,nscd,centos,ubuntu
 [sudo]
 
 [domain/<%= @domain %>]
+<% if @enumerate %>
+enumerate = true
+<% end %>
+
 id_provider = ad
 access_provider = ad
 

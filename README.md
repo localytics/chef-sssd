@@ -23,6 +23,12 @@ Launch, configure, and manage the SSSD service for communication with an AD back
     <td><tt>true</tt></td>
   </tr>
   <tr>
+    <td><tt>['sssd']['enumerate']</tt></td>
+    <td>Boolean</td>
+    <td>whether or not to enable enumeration (increased load on Simple AD servers, but some setups may need it)</td>
+    <td><tt>true</tt></td>
+  </tr>
+  <tr>
     <td><tt>['sssd']['packages']</tt></td>
     <td>Array</td>
     <td>list of packages to install prior to adcli join</td>

@@ -99,6 +99,7 @@ template '/etc/sssd/sssd.conf' do
   variables({
     :domain => node['sssd']['directory_name'],
     :realm => node['sssd']['directory_name'].upcase,
+    :enumerate => node['sssd']['enumerate']
   })
 end
 

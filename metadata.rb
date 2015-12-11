@@ -4,7 +4,7 @@ maintainer_email 'oss@localytics.com'
 license          'Apache 2.0'
 description      'Installs/Configures sssd for use with an AD backend such as Amazon DS'
 long_description 'Installs/Configures sssd for use with an AD backend such as Amazon DS'
-version          '0.4.2'
+version          IO.read(File.join(File.dirname(__FILE__), 'VERSION')) rescue '0.0.1'
 
 depends 'apt', '~> 2.7.0'
 depends 'yum', '~> 3.5.0'

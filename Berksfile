@@ -1,4 +1,7 @@
-source "https://supermarket.getchef.com"
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+source "https://supermarket.chef.io"
 
 metadata
 

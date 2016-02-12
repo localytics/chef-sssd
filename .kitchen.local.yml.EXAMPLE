@@ -7,10 +7,10 @@
 suites:
   - name: with-registration
     run_list:
-      - recipe[test-helper::dhclient]
+      - recipe[test-setup::dhclient]
       - recipe[resolver::default]
       - recipe[sssd::default]
-      - recipe[test-helper::serverspec]
+      - recipe[test-helper::default]
     attributes:
       set_fqdn: '*.example.com'
       resolver:

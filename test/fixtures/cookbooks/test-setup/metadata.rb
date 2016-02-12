@@ -1,4 +1,4 @@
-name             'test-helper'
+name             'test-setup'
 description      'Various sssd related test recipes'
 version          '0.0.1'
 

@@ -18,7 +18,7 @@
 #
 
 if node['sssd']['directory_name'].nil?
-  Chef::Application.fatal!("You must set the directory name!")
+  Chef::Application.fatal!('You must set the directory name!')
 end
 
 if node['sssd']['computer_name'].nil?
@@ -46,7 +46,7 @@ if node['sssd']['join_domain'] == true
   begin
     realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'])
   rescue
-    Chef::Application.fatal!("Unable to access the encrypted data bag for domain credentials, ensure encrypted_data_bag_secret is available!")
+    Chef::Application.fatal!('Unable to access the encrypted data bag for domain credentials, ensure encrypted_data_bag_secret is available!')
   end
   
   # The ideal here (and future PR) is "realm join", but for now, we use adcli due to:
@@ -71,7 +71,7 @@ when 'ubuntu'
     owner 'root'
     group 'root'
     mode '0644'
-    notifies :run, "execute[pam-auth-update]"
+    notifies :run, 'execute[pam-auth-update]'
   end
 
   # Enable automatic home directory creation

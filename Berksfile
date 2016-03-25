@@ -8,4 +8,5 @@ metadata
 group :integration do
   cookbook 'resolver'
   cookbook 'test-helper', '>= 1.1.0'
+  cookbook 'test-setup', path: 'test/fixtures/cookbooks/test-setup'
 end

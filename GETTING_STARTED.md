@@ -500,6 +500,6 @@ Once you're all set, simply:
   bundle exec kitchen test
   ```
 
-... and watch! If all tests pass, you've successfully configured your Simple AD server.
+... and watch! If all tests pass, you've successfully configured your Simple AD server!
 
-Comments and feedback on our setup are welcome!
+Comments and feedback on our setup are welcome.

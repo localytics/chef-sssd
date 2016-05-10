@@ -9,13 +9,25 @@ provisioner:
   require_chef_omnibus: 12.2
 
 platforms:
-  - name: centos-6.6
+  - name: centos-6.7
   - name: ubuntu-14.04
 
 # For testing joining the domain, see .kitchen.local.yml.EXAMPLE
 suites:
-  - name: default
+  - name: ubuntu
+    includes: ubuntu-14.04
     run_list:
+      - recipe[apt]
+      - recipe[sssd::default]
+      - recipe[test-helper::default]
+    attributes:
+      sssd:
+        directory_name: 'ldap.example.com'
+        join_domain: false
+  - name: centos
+    includes: centos-6.7
+    run_list:
+      - recipe[yum]
       - recipe[sssd::default]
       - recipe[test-helper::default]
     attributes:

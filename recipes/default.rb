@@ -30,10 +30,7 @@ else
 end
 
 case node['platform']
-when 'ubuntu'
-  include_recipe 'apt'
 when 'centos'
-  include_recipe 'yum'
   include_recipe 'yum-epel'
 end
 

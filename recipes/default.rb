@@ -32,6 +32,7 @@ end
 case node['platform']
 when 'centos'
   include_recipe 'yum-epel'
+  include_recipe 'sssd::adcli'
 end
 
 node['sssd']['packages'].each do |pkg|

@@ -19,8 +19,11 @@ adcli_rpm = "#{Chef::Config[:file_cache_path]}/#{node['sssd']['adcli']['rpm']}"
 
 remote_file adcli_rpm do
   source node['sssd']['adcli']['rpm_source']
+  not_if "rpm -qa | grep -qx 'adcli'"
+  notifies :install, 'package[adcli]', :immediately
 end
 
 package 'adcli' do
   source adcli_rpm
+  action :nothing
 end

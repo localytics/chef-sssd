@@ -18,5 +18,5 @@ default['sssd']['directory_name'] = nil
 default['sssd']['realm']['databag'] = 'sssd_credentials'
 default['sssd']['realm']['databag_item'] = 'realm'
 
-default['sssd']['adcli']['rpm'] = 'adcli-0.7.3-1.el6.x86_64.rpm'
+default['sssd']['adcli']['rpm'] = 'adcli-0.8.0-1.el6.x86_64.rpm'
 default['sssd']['adcli']['rpm_source'] = "https://s3.amazonaws.com/public.localytics/artifacts/#{node['sssd']['adcli']['rpm']}"

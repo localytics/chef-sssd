@@ -1,8 +1,8 @@
 case node['platform']
 when 'ubuntu'
-  default['sssd']['packages'] = %w(expect sssd sssd-ad sssd-ad-common sssd-tools adcli krb5-user)
+  default['sssd']['packages'] = %w(sssd sssd-ad sssd-ad-common sssd-tools adcli krb5-user)
 when 'centos'
-  default['sssd']['packages'] = %w(expect sssd sssd-ad sssd-common sssd-tools authconfig krb5-workstation)
+  default['sssd']['packages'] = %w(sssd sssd-ad sssd-common sssd-tools authconfig krb5-workstation)
 end
 
 default['sssd']['join_domain'] = true

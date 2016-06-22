@@ -1,6 +1,6 @@
-# 0.1.1
+# 0.5.0
 
-Remove the expect dependency and rely on `adcli`'s `--stdin-password` option instead
+Use adcli --stdin-password to set the password instead of expect
 
 # 0.1.0
 

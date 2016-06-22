@@ -50,14 +50,9 @@ if node['sssd']['join_domain'] == true
   # The ideal here (and future PR) is "realm join", but for now, we use adcli due to:
   #   CentOS 6: realm is only available in RHEL/CentOS 7
   #   Ubuntu 14.04: due to necessary hacky work-arounds to this bug: https://bugs.launchpad.net/ubuntu/+source/realmd/+bug/1333694
-  bash 'join_domain' do
-    user 'root'
-    code <<-EOF
-    /usr/bin/expect -c 'spawn adcli join --host-fqdn #{computer_name} -U #{realm_databag_contents['username']} #{node['sssd']['directory_name']}
-    expect "Password for #{realm_databag_contents['username']}: "
-    send "#{realm_databag_contents['password']}\r"
-    expect eof'
-    EOF
+  execute 'join_domain' do
+    sensitive true
+    command "echo -n '#{realm_databag_contents['password']}' | adcli join --host-fqdn #{computer_name} -U #{realm_databag_contents['username']} #{node['sssd']['directory_name']} --stdin-password"
     not_if "klist -k | grep -i '@#{node['sssd']['directory_name']}'"
   end
 end

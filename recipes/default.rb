@@ -46,7 +46,7 @@ if node['sssd']['join_domain'] == true
   rescue
     Chef::Application.fatal!('Unable to access the encrypted data bag for domain credentials, ensure encrypted_data_bag_secret is available!')
   end
-  
+
   # The ideal here (and future PR) is "realm join", but for now, we use adcli due to:
   #   CentOS 6: realm is only available in RHEL/CentOS 7
   #   Ubuntu 14.04: due to necessary hacky work-arounds to this bug: https://bugs.launchpad.net/ubuntu/+source/realmd/+bug/1333694
@@ -98,5 +98,5 @@ end
 
 service 'sssd' do
   supports :status => true, :restart => true, :reload => true
-  action [:enable]
+  action node['sssd']['service_actions']
 end

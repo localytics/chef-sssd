@@ -58,6 +58,12 @@ Launch, configure, and manage the SSSD service for communication with an AD back
     <td>databag item that contains the username and password used in "adcli join" or "realm join"</td>
     <td><tt>nil</tt></td>
   </tr>
+  <tr>
+    <td><tt>['sssd']['service_actions']</tt></td>
+    <td>Symbol | Array of symbols</td>
+    <td>the actions to run on the <tt>sssd</tt> service</td>
+    <td><tt>[:enable]</tt></td>
+  </tr>
 </table>
 
 ## Usage

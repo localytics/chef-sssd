@@ -54,6 +54,7 @@ if node['sssd']['join_domain'] == true
     sensitive true
     command "echo -n '#{realm_databag_contents['password']}' | adcli join --host-fqdn #{computer_name} -U #{realm_databag_contents['username']} #{node['sssd']['directory_name']} --stdin-password"
     not_if "klist -k | grep -i '@#{node['sssd']['directory_name']}'"
+    notifies :restart, 'service[sssd]', :immediately
   end
 end
 

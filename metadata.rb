@@ -9,5 +9,5 @@ version          IO.read(File.join(File.dirname(__FILE__), 'VERSION')) rescue '0
 supports 'ubuntu', '>= 14.04'
 supports 'centos', '>= 6.6'
 
-depends 'apt', '< 4'
+depends 'apt', '< 4.0'
 depends 'yum-epel', '~> 0.6.0'

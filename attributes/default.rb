@@ -9,7 +9,6 @@ default['sssd']['join_domain'] = true
 default['sssd']['enumerate'] = false
 default['sssd']['computer_name'] = nil
 default['sssd']['directory_name'] = nil
-default['sssd']['use_encrypted_data_bag_secret'] = false
 
 # {
 #   "id": "realm",

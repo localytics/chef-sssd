@@ -29,3 +29,9 @@ ldap_id_mapping = True
 fallback_homedir = /home/%u
 
 ldap_user_ssh_public_key = sshPublicKey
+
+<% if node.sssd['custom_config'] %>
+<% node.sssd['custom_config'].sort.each do |key, value| %>
+<%= key %>=<%= value %>
+<% end %>
+<% end %>

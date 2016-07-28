@@ -64,6 +64,12 @@ Launch, configure, and manage the SSSD service for communication with an AD back
     <td>the actions to run on the <tt>sssd</tt> service</td>
     <td><tt>[:enable]</tt></td>
   </tr>
+    <tr>
+    <td><tt>['sssd']['encypted_data_bag_secret']</tt></td>
+    <td>String</td>
+    <td>The encrypted databag secret</td>
+    <td><tt>nil</tt></td>
+  </tr>
 </table>
 
 ## Usage

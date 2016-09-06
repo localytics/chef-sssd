@@ -26,7 +26,7 @@ cache_credentials = True
 krb5_store_password_if_offline = True
 default_shell = /bin/bash
 ldap_id_mapping = True
-fallback_homedir = /home/%u
+fallback_homedir = <%= node['sssd']['basedir']%>/%u
 
 ldap_user_ssh_public_key = sshPublicKey
 

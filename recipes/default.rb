@@ -52,7 +52,7 @@ if node['sssd']['join_domain'] == true
   #   Ubuntu 14.04: due to necessary hacky work-arounds to this bug: https://bugs.launchpad.net/ubuntu/+source/realmd/+bug/1333694
   execute 'join_domain' do
     sensitive true
-    command "echo -n '#{realm_databag_contents['password']}' | adcli join --host-fqdn #{computer_name} -U #{realm_databag_contents['username']} #{node['sssd']['directory_name']} --stdin-password"
+    command "echo -n '#{realm_databag_contents['password']}' | adcli join --host-fqdn #{node['fqdn']} --computer-name #{computer_name} -U #{realm_databag_contents['username']} #{node['sssd']['directory_name']} --stdin-password"
     not_if "klist -k | grep -i '@#{node['sssd']['directory_name']}'"
   end
 end

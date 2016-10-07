@@ -22,4 +22,4 @@ default['sssd']['adcli']['rpm'] = 'adcli-0.8.0-1.el6.x86_64.rpm'
 default['sssd']['adcli']['rpm_source'] = "https://s3.amazonaws.com/public.localytics/artifacts/#{node['sssd']['adcli']['rpm']}"
 
 default['sssd']['service_actions'] = [:enable]
-default['sssd']['basedir'] = "/home"
+default['sssd']['basedir'] = '/home'

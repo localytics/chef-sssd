@@ -42,7 +42,11 @@ end
 if node['sssd']['join_domain'] == true
   # We enforce encrypted data bag here because mostly anything else (environment attribute?) is scary
   begin
-    realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'])
+    if node['sssd']['encrypted_data_bag_secret']
+      realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'],node['sssd']['encrypted_data_bag_secret'])
+    else
+      realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'])
+    end
   rescue
     Chef::Application.fatal!('Unable to access the encrypted data bag for domain credentials, ensure encrypted_data_bag_secret is available!')
   end

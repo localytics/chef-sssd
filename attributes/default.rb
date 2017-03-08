@@ -15,6 +15,7 @@ default['sssd']['directory_name'] = nil
 #   "username": "administrator",
 #   "password": "password"
 # }
+default['sssd']['realm']['credentials_source'] = 'data_bag'
 default['sssd']['realm']['databag'] = 'sssd_credentials'
 default['sssd']['realm']['databag_item'] = 'realm'
 

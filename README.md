@@ -47,6 +47,12 @@ Launch, configure, and manage the SSSD service for communication with an AD back
     <td><tt>nil</tt></td>
   </tr>
   <tr>
+    <td><tt>['sssd']['realm']['credentials_source']</tt></td>
+    <td>String</td>
+    <td>source of the realm credentials. see "Realm Credentials" below</td>
+    <td><tt>data_bag</tt></td>
+  </tr>
+  <tr>
     <td><tt>['sssd']['realm']['databag']</tt></td>
     <td>String</td>
     <td>databag that contains the username and password used in "adcli join" or "realm join"</td>
@@ -93,6 +99,21 @@ Include `sssd` in your node's `run_list`:
   ]
 }
 ```
+
+## Realm Credentials
+
+This cookbook natively supports passing the realm credentials in via a data bag.
+For those not using data bags or an alternate credential manager, you can implement
+a wrapper cookbook and pass the realm credentials in via ```node.run_state```.
+
+Example:
+
+```ruby
+node.run_state['realm_username'] = 'Administrator'
+node.run_state['realm_password'] = 'N0TaR34lPassw0rd'
+
+include_recipe 'sssd'
+``` 
 
 ## Testing
 

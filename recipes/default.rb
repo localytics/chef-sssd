@@ -17,8 +17,26 @@
 # limitations under the License.
 #
 
+if node['sssd']['realm']['credentials_source'] == 'data_bag'
+  begin
+    if node['sssd']['encrypted_data_bag_secret']
+      realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'],node['sssd']['encrypted_data_bag_secret'])
+    else
+      realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'])
+    end
+    node.run_state['realm_username'] = realm_databag_contents['username']
+    node.run_state['realm_password'] = realm_databag_contents['password']
+  rescue
+    Chef::Application.fatal!('Unable to access the encrypted data bag for domain credentials, ensure encrypted_data_bag_secret is available!')
+  end
+end
+
 if node['sssd']['directory_name'].nil?
   Chef::Application.fatal!('You must set the directory name!')
+end
+
+unless node.run_state.key?('realm_username') && node.run_state.key?('realm_password')
+  Chef::Application.fatal!('You must set node.run_state.realm_username and node.run_state.realm_password!')
 end
 
 if node['sssd']['computer_name'].nil?
@@ -40,23 +58,19 @@ node['sssd']['packages'].each do |pkg|
 end
 
 if node['sssd']['join_domain'] == true
-  # We enforce encrypted data bag here because mostly anything else (environment attribute?) is scary
-  begin
-    if node['sssd']['encrypted_data_bag_secret']
-      realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'],node['sssd']['encrypted_data_bag_secret'])
-    else
-      realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'])
-    end
-  rescue
-    Chef::Application.fatal!('Unable to access the encrypted data bag for domain credentials, ensure encrypted_data_bag_secret is available!')
-  end
-
   # The ideal here (and future PR) is "realm join", but for now, we use adcli due to:
   #   CentOS 6: realm is only available in RHEL/CentOS 7
   #   Ubuntu 14.04: due to necessary hacky work-arounds to this bug: https://bugs.launchpad.net/ubuntu/+source/realmd/+bug/1333694
   execute 'join_domain' do
     sensitive true
-    command "echo -n '#{realm_databag_contents['password']}' | adcli join --host-fqdn #{node['fqdn']} --computer-name #{computer_name} -U #{realm_databag_contents['username']} #{node['sssd']['directory_name']} --stdin-password"
+    command <<-EOF
+      echo -n '#{node.run_state['realm_password']}' | \
+      adcli join --host-fqdn #{node['fqdn']} \
+        --computer-name #{computer_name} \
+        -U #{node.run_state['realm_username']} \
+        #{node['sssd']['directory_name']} \
+        --stdin-password
+    EOF
     not_if "klist -k | grep -i '@#{node['sssd']['directory_name']}'"
   end
 end

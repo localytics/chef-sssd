@@ -43,9 +43,9 @@ if node['sssd']['join_domain'] == true
   if node['sssd']['realm']['credentials_source'] == 'data_bag'
     begin
       if node['sssd']['encrypted_data_bag_secret']
-        realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'],node['sssd']['encrypted_data_bag_secret'])
+        realm_databag_contents = data_bag_item(node['sssd']['realm']['databag'], node['sssd']['realm']['databag_item'], node['sssd']['encrypted_data_bag_secret'])
       else
-        realm_databag_contents = Chef::EncryptedDataBagItem.load(node['sssd']['realm']['databag'],node['sssd']['realm']['databag_item'])
+        realm_databag_contents = data_bag_item(node['sssd']['realm']['databag'], node['sssd']['realm']['databag_item'])
       end
       node.run_state['realm_username'] = realm_databag_contents['username']
       node.run_state['realm_password'] = realm_databag_contents['password']
